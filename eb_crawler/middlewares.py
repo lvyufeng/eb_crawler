@@ -101,3 +101,16 @@ class EbCrawlerDownloaderMiddleware(object):
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
+
+# Chrome 请求动态网页
+class ChromeMiddleware(object):
+
+    def process_request(self,request,spider):
+        if spider.name == 'taobao':
+            spider.browser.get(request.url)
+            import time
+            time.sleep(0.5)
+            print('visit:{0}'.format(request.url))
+
+            from scrapy.http import HtmlResponse
+            return HtmlResponse(url=spider.browser.current_url, body=spider.browser.page_source, encoding="utf-8",request=request)
