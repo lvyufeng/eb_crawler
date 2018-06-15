@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-
+import os
+import sys
+BASE_DIR = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
+sys.path.insert(0, os.path.join(BASE_DIR, 'slave'))
 # Scrapy settings for slave project
 #
 # For simplicity, this file contains only settings considered important or
@@ -66,9 +69,10 @@ DOWNLOADER_MIDDLEWARES = {
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'slave.pipelines.SlavePipeline': 300,
-#}
+ITEM_PIPELINES = {
+   # 'slave.pipelines.SlavePipeline': 300,
+    'slave.pipelines.MongoPipeline': 1,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html
@@ -92,13 +96,13 @@ DOWNLOADER_MIDDLEWARES = {
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 
-#单机数据库配置
-SingleMONGODB_SERVER = "localhost"
-SingleMONGODB_PORT = 27017
-SingleMONGODB_DB = "eb"
+#数据库配置
+MONGODB_SERVER = "localhost"
+MONGODB_PORT = 27017
+MONGODB_DB = "eb"
 
 # SCHEDULER = "scrapy_redis.scheduler.Scheduler"
-# DUPEFILTER_CLASS = "scrapy_redis.dupefilter.RFPDupeFilter"
+DUPEFILTER_CLASS = "scrapy_redis.dupefilter.RFPDupeFilter"
 SCHEDULER_PERSIST = True
 # SCHEDULER_QUEUE_CLASS = 'scrapy_redis.queue.SpiderPriorityQueue'
 REDIS_URL = None
