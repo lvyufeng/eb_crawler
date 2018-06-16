@@ -8,6 +8,7 @@ from scrapy.selector import Selector
 import os
 from items import TaobaoItem,TaobaoItemLoader
 from selenium.webdriver.support.ui import WebDriverWait
+from utils.redis_op import insert_data,redis_connect
 
 class TaobaoSpider(RedisSpider):
     name = 'taobao'
@@ -30,13 +31,34 @@ class TaobaoSpider(RedisSpider):
 
         super(TaobaoSpider,self).__init__()
         dispatcher.connect(self.spider_closed,signals.spider_closed)
-        dispatcher.connect(self.spider_closed,signals.spider_error)
+        dispatcher.connect(self.write_back_failed_urls,signals.spider_error)
+        dispatcher.connect(self.write_back_failed_urls, signals.item_dropped)
 
-    def spider_closed(self,spider):
+
+    def write_back_failed_urls(self):
+        host = self.crawler.settings.get('REDIS_HOST')
+        port = self.crawler.settings.get('REDIS_PORT')
+        db = 0
+        r = redis_connect(host, port, db)
+        if r != None:
+            for url in self.failed_urls:
+                try:
+                    # print(type,url)
+                    insert_data(r, 'taobao:requests', url)
+                except Exception as e:
+                    print(url)
+                    print(e)
+                    break
+            print('failed urls write back finished')
+        else:
+            print('can not connect redis')
+
+    # 处理失败的url，重新写入redis
+    def spider_closed(self):
     # 当爬虫退出时，关闭Chrome
         print('spider closed')
         self.browser.quit()
-    #     处理失败的url，重新写入redis
+
 
     def parse(self, response):
         taobao_item = TaobaoItem()

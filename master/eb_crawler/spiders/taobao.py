@@ -4,6 +4,8 @@ from scrapy_redis.spiders import RedisSpider
 from selenium import webdriver
 from scrapy.xlib.pydispatch import dispatcher
 from scrapy import signals
+from selenium.webdriver.support.ui import WebDriverWait
+
 import os
 
 class TaobaoSpider(RedisSpider):
@@ -11,7 +13,7 @@ class TaobaoSpider(RedisSpider):
     allowed_domains = ['www.taobao.com']
     # start_urls = ['https://item.taobao.com/item.htm?id=525730909486']
 
-    redis_key = 'taobao:requests'
+    redis_key = 'taobao:start_urls'
 
 
 
@@ -23,6 +25,10 @@ class TaobaoSpider(RedisSpider):
             'user-agent="Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1"')
 
         self.browser = webdriver.Chrome(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'libs/chromedriver'),options=options)
+        self.browser.set_window_size(500, 900)
+        self.browser.set_page_load_timeout(5)
+        self.wait = WebDriverWait(self.browser, 5)
+
         super(TaobaoSpider,self).__init__()
         dispatcher.connect(self.spider_closed,signals.spider_closed)
 

@@ -6,6 +6,10 @@
 # https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
+from scrapy.http import HtmlResponse
 
 
 class EbCrawlerSpiderMiddleware(object):
@@ -107,10 +111,13 @@ class ChromeMiddleware(object):
 
     def process_request(self,request,spider):
         if spider.name == 'taobao':
-            spider.browser.get(request.url)
-            import time
-            time.sleep(0.5)
-            print('visit:{0}'.format(request.url))
-
-            from scrapy.http import HtmlResponse
-            return HtmlResponse(url=spider.browser.current_url, body=spider.browser.page_source, encoding="utf-8",request=request)
+            try:
+                link = 'https://h5.m.taobao.com/awp/core/detail.htm?id='+str(request.url).split('=')[-1]
+                spider.browser.get(link)
+                spider.wait.until(EC.presence_of_element_located('#J_newDetail'))
+            # import time
+            # time.sleep(0.5)
+                print('visit:',link)
+                return HtmlResponse(url=spider.browser.current_url, body=spider.browser.page_source, encoding="utf-8",request=request)
+            except TimeoutException:
+                return HtmlResponse(url=request.url, status=500, request=request)

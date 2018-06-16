@@ -1,7 +1,7 @@
 
 import os
-from eb_crawler.utils.redis_op import insert_data,redis_connect
-from eb_crawler.utils.config_parse import config_parse
+from master.eb_crawler.utils.redis_op import insert_data,redis_connect
+from master.eb_crawler.utils.config_parse import config_parse
 
 def get_urls(file_path):
     urls = []
@@ -15,7 +15,7 @@ def get_urls(file_path):
     return urls
 
 def find_url_type(urls):
-    config = config_parse('/Users/lvyufeng/PycharmProjects/eb_crawler/eb_crawler/configs/redis_config.ini')
+    config = config_parse('/Users/lvyufeng/PycharmProjects/eb_crawler/master/eb_crawler/configs/redis_config.ini')
     domins = {}
     host = config.get('redis','host')
     port = config.getint('redis','port')
@@ -28,10 +28,11 @@ def find_url_type(urls):
         print(domins)
         for url in urls:
             for domin in domins.keys():
-                if url.find(domin):
+                if url.find(domin) != -1:
 
                     try:
                         type = config.get('url_type',domins[domin])
+                        # print(type,url)
                         insert_data(r,type,url)
                     except Exception as e:
                         print(url)
@@ -40,5 +41,5 @@ def find_url_type(urls):
         print('import finished')
     else:
         print('can not connect redis')
-urls = get_urls('/Users/lvyufeng/PycharmProjects/eb_crawler/eb_crawler/utils/taskinfo.csv')
+urls = get_urls('/Users/lvyufeng/PycharmProjects/eb_crawler/master/eb_crawler/utils/taskinfo.csv')
 find_url_type(urls)
