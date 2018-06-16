@@ -48,13 +48,15 @@ class TaobaoSpider(RedisSpider):
         selector = Selector(response)
 
         # .o-t-error response.status == 404 or
-        if selector.css('.o-t-error') or response.status == 500:
+        if selector.css('.o-t-error') or response.status == 500 or str(response.url).find('market') != -1:
             self.failed_urls.append(response.url)
+            print('加载错误，重新写回redis')
         #     .J_recommends 商品过期不存在 试试其他相似宝贝
+        # elif selector.css('.hintBanner')
         elif str(response.url).split('=')[-1] == 'false':
             print('商品过期不存在,url:{0}'.format(response.url))
-        elif str(response.url).find('market') != -1:
-            pass
+        elif str(response.url).find('trip') != -1:
+            print('飞猪链接,url:{0}'.format(response.url))
         else:
             item_loader = TaobaoItemLoader(item=TaobaoItem(),response=response)
             item_loader.add_value('productActualID',str(response.url).split('=')[-1])

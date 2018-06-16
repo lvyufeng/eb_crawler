@@ -6,7 +6,7 @@
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 from twisted.enterprise import adbapi
 from pymongo import MongoClient
-
+from scrapy.exceptions import DropItem
 class SlavePipeline(object):
     def process_item(self, item, spider):
         return item
@@ -40,6 +40,8 @@ class MongoPipeline(object):
 
     def process_item(self, item, spider):
         # 数据库储存
+        if item == {}:
+            raise DropItem("空数据，不写入数据库: %s" % item)
         self.db[self.collection_name].insert_one(dict(item))
         return item
         # 切记 一定要返回item进行后续的pipelines 数据处理

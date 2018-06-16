@@ -116,11 +116,18 @@ class ChromeMiddleware(object):
                 link = 'https://h5.m.taobao.com/awp/core/detail.htm?id='+str(request.url).split('=')[-1]
                 spider.browser.get(link)
                 # print(spider.browser.page_source)
+                # 处理淘宝market页面显示的数据
                 if str(spider.browser.current_url).find('market') != -1:
-                    print('retry'+link)
-                    spider.browser.get(link)
+                    return HtmlResponse(url=request.url, status=500, request=request)
+                    # print('retry'+link)
+                    # while(str(spider.browser.current_url).find('market') != -1):
+                    #     spider.browser.get(link)
 
-                if str(spider.browser.current_url).find('false') == -1:
+                # 处理飞猪item
+                elif str(spider.browser.current_url).find('trip') != -1:
+                    return HtmlResponse(url=request.url, request=request)
+                # 处理商品不存在
+                elif str(spider.browser.current_url).find('false') == -1:
                     spider.wait.until(EC.presence_of_element_located((By.PARTIAL_LINK_TEXT,"登录")))
                 # spider.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR,'#J_recommends > div > div > h2 > span')))
                 import time

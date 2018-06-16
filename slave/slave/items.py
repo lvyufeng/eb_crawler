@@ -8,11 +8,15 @@
 import scrapy
 from scrapy.loader import ItemLoader
 from scrapy.loader.processors import MapCompose, TakeFirst, Join
+from w3lib.html import remove_tags
 
 class SlaveItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
     pass
+
+def generate_price(value):
+    return value
 
 class TaobaoItemLoader(ItemLoader):
     #自定义itemloader
@@ -54,9 +58,14 @@ class TaobaoItem(scrapy.Item):
     # 规格
     deliveryStartArea = scrapy.Field()
     # 发货起始地址
-    productPrice = scrapy.Field()
+    productPrice = scrapy.Field(
+        input_processor=MapCompose(remove_tags,generate_price),
+    )
     # 商品原始价格
-    productPromPrice = scrapy.Field()
+    productPromPrice = scrapy.Field(
+        input_processor=MapCompose(remove_tags, generate_price),
+
+    )
     # 促销价格
     monthSaleCount = scrapy.Field()
     # 月销量
