@@ -106,7 +106,7 @@ DUPEFILTER_CLASS = "scrapy_redis.dupefilter.RFPDupeFilter"
 SCHEDULER_PERSIST = True
 # SCHEDULER_QUEUE_CLASS = 'scrapy_redis.queue.SpiderPriorityQueue'
 REDIS_URL = None
-REDIS_HOST = 'localhost' # 也可以根据情况改成 localhost
+REDIS_HOST = '202.202.5.140' # 也可以根据情况改成 localhost
 REDIS_PORT = 6379
 #配置日志存储目录
 #LOG_FILE = "logs/scrapy.log"

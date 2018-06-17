@@ -26,6 +26,7 @@ class TaobaoSpider(RedisSpider):
 
         self.browser = webdriver.Chrome(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'libs/chromedriver'),chrome_options=options)
         self.browser.set_window_size(500, 900)
+        # self.browser.
         self.browser.set_page_load_timeout(5)
         self.wait = WebDriverWait(self.browser, 5)
 
@@ -43,7 +44,7 @@ class TaobaoSpider(RedisSpider):
         if r != None:
             for url in self.failed_urls:
                 try:
-                    # print(type,url)
+                    print(type,url)
                     insert_data(r, 'taobao:requests', url)
                 except Exception as e:
                     print(url)
@@ -67,19 +68,20 @@ class TaobaoSpider(RedisSpider):
         2、解析url内容
         """
 
-        selector = Selector(response)
-
-        # .o-t-error response.status == 404 or
-        if selector.css('.o-t-error') or response.status == 500 or str(response.url).find('market') != -1:
-            self.failed_urls.append(response.url)
-            print('加载错误，重新写回redis')
-        #     .J_recommends 商品过期不存在 试试其他相似宝贝
-        # elif selector.css('.hintBanner')
-        elif str(response.url).split('=')[-1] == 'false':
-            print('商品过期不存在,url:{0}'.format(response.url))
-        elif str(response.url).find('trip') != -1:
-            print('飞猪链接,url:{0}'.format(response.url))
-        else:
+        # selector = Selector(response)
+        #
+        # # .o-t-error response.status == 404 or
+        # if selector.css('.o-t-error') or response.status == 500 or str(response.url).find('market') != -1:
+        #     self.failed_urls.append(response.url)
+        #     print('加载错误，重新写回redis')
+        # #     .J_recommends 商品过期不存在 试试其他相似宝贝
+        # # elif selector.css('.hintBanner')
+        # elif str(response.url).split('=')[-1] == 'false':
+        #     print('商品过期不存在,url:{0}'.format(response.url))
+        # elif str(response.url).find('trip') != -1:
+        #     print('飞猪链接,url:{0}'.format(response.url))
+        # else:
+        if str(response.url).find('https://h5.m.taobao.com/awp/core/detail.htm?id=') != -1 and response.body != '':
             item_loader = TaobaoItemLoader(item=TaobaoItem(),response=response)
             item_loader.add_value('productActualID',str(response.url).split('=')[-1])
             item_loader.add_value('productURL',response.url)
@@ -109,6 +111,18 @@ class TaobaoSpider(RedisSpider):
             # item_loader.add_xpath('productActualID','')
 
             taobao_item = item_loader.load_item()
+        # 处理商品不存在
+        elif str(response.url).split('=')[-1] == 'false':
+            print('商品过期不存在,url:{0}'.format(response.url))
+        # 处理飞猪item
+        elif str(response.url).find('trip') != -1:
+            print('飞猪链接,url:{0}'.format(response.url))
+        # 处理咸鱼拍卖
+        elif str(response.url).find('paimai') != -1:
+            print('闲鱼链接,url:{0}'.format(response.url))
+        else:
+            self.failed_urls.append(response.url)
+            print('加载错误，重新写回redis')
 
         yield taobao_item
 

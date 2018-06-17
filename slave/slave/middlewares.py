@@ -115,24 +115,40 @@ class ChromeMiddleware(object):
             try:
                 link = 'https://h5.m.taobao.com/awp/core/detail.htm?id='+str(request.url).split('=')[-1]
                 spider.browser.get(link)
-                # print(spider.browser.page_source)
-                # 处理淘宝market页面显示的数据
-                if str(spider.browser.current_url).find('market') != -1:
-                    return HtmlResponse(url=request.url, status=500, request=request)
-                    # print('retry'+link)
-                    # while(str(spider.browser.current_url).find('market') != -1):
-                    #     spider.browser.get(link)
-
-                # 处理飞猪item
-                elif str(spider.browser.current_url).find('trip') != -1:
-                    return HtmlResponse(url=request.url, request=request)
-                # 处理商品不存在
-                elif str(spider.browser.current_url).find('false') == -1:
-                    spider.wait.until(EC.presence_of_element_located((By.PARTIAL_LINK_TEXT,"登录")))
-                # spider.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR,'#J_recommends > div > div > h2 > span')))
                 import time
                 time.sleep(0.5)
-                print('visit:',link)
-                return HtmlResponse(url=spider.browser.current_url, body=spider.browser.page_source, encoding="utf-8",request=request)
+                # 处理url的新逻辑，只将https://h5.m.taobao.com/awp/core/detail.htm?id=
+                # 的page_source返回，其余均返回为空
+                # 在parse中具体判断
+                if str(spider.browser.current_url).find('https://h5.m.taobao.com/awp/core/detail.htm?id=') == -1:
+                    return HtmlResponse(url=spider.browser.current_url, body='', encoding="utf-8",request=request)
+                else:
+                    spider.wait.until(EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, "登录")))
+
+                    print('visit:', link)
+                    return HtmlResponse(url=spider.browser.current_url, body=spider.browser.page_source,
+                                        encoding="utf-8", request=request)
+                # print(spider.browser.page_source)
+                # # 处理淘宝market页面显示的数据
+                # if str(spider.browser.current_url).find('market') != -1:
+                #     return HtmlResponse(url=request.url, status=500, request=request)
+                #     # print('retry'+link)
+                #     # while(str(spider.browser.current_url).find('market') != -1):
+                #     #     spider.browser.get(link)
+                #
+                # # 处理飞猪item
+                # elif str(spider.browser.current_url).find('trip') != -1:
+                #     return HtmlResponse(url=request.url, request=request)
+                # # 处理咸鱼拍卖
+                # elif str(spider.browser.current_url).find('paimai') != -1:
+                #     return HtmlResponse(url=request.url, request=request)
+                # # 处理商品不存在
+                # elif str(spider.browser.current_url).find('false') == -1:
+                #
+                # # spider.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR,'#J_recommends > div > div > h2 > span')))
+                # import time
+                # time.sleep(0.5)
+                # print('visit:',link)
+                # return HtmlResponse(url=spider.browser.current_url, body=spider.browser.page_source, encoding="utf-8",request=request)
             except TimeoutException:
-                return HtmlResponse(url=request.url, status=500, request=request)
+                return HtmlResponse(url=spider.browser.current_url, body='', encoding="utf-8", request=request)

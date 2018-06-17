@@ -6,5 +6,6 @@ cars = client['eb']
 items = cars['items']
 
 while True:
-    print(items.find().count())
+    print(len(items.distinct('productName')))
+    # print(items.find().count())
     time.sleep(60)
