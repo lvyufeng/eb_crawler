@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-import scrapy
 from scrapy_redis.spiders import RedisSpider
 from selenium import webdriver
 from scrapy.xlib.pydispatch import dispatcher
 from scrapy import signals
-from scrapy.selector import Selector
 import os
 from items import TaobaoItem,TaobaoItemLoader
 from selenium.webdriver.support.ui import WebDriverWait
@@ -12,7 +10,7 @@ from utils.redis_op import insert_data,redis_connect
 
 class TaobaoSpider(RedisSpider):
     name = 'taobao'
-    allowed_domains = ['www.taobao.com']
+    # allowed_domains = ['www.taobao.com']
 
     redis_key = 'taobao:requests'
 

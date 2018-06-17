@@ -42,8 +42,8 @@ class MongoPipeline(object):
         # 数据库储存
         if item == {}:
             raise DropItem("空数据，不写入数据库: %s" % item)
-        if self.db[self.collection_name].find({'productActualID': item["productActualID"]}):
-            raise DropItem("数据重复，不写入数据库: %s" % item)
+        # if self.db[self.collection_name].find({'productActualID': item["productActualID"]}):
+        #     raise DropItem("数据重复，不写入数据库: %s" % item)
         # 这里通过mongodb进行了一个去重的操作，每次更新插入数据之前都会进行查询，判断要插入的url_token是否已经存在，如果不存在再进行数据插入，否则放弃数据
         self.db[self.collection_name].update({'productActualID': item["productActualID"]}, {'$set': item}, True)
 

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-import scrapy
-from scrapy_redis.spiders import RedisSpider
+from slave.scrapy_redis import RedisSpider
 from selenium import webdriver
 from scrapy.xlib.pydispatch import dispatcher
 from scrapy import signals

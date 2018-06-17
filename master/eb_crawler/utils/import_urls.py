@@ -2,6 +2,9 @@
 import os
 from master.eb_crawler.utils.redis_op import insert_data,redis_connect
 from master.eb_crawler.utils.config_parse import config_parse
+from scrapy import Request
+from scrapy.utils.reqser import request_to_dict
+import pickle
 
 def get_urls(file_path):
     urls = []
@@ -33,13 +36,22 @@ def find_url_type(urls):
                     try:
                         type = config.get('url_type',domins[domin])
                         # print(type,url)
-                        insert_data(r,type,url)
-                    except Exception as e:
+                        request = Request(url)
+                        data = pickle.dumps(request_to_dict(request))
+                        insert_data(r,type,int(urls.index(url)),data)
+                    except Exception:
                         print(url)
-                        print(e)
+                        print(Exception)
                         break
         print('import finished')
     else:
         print('can not connect redis')
 urls = get_urls('/Users/lvyufeng/PycharmProjects/eb_crawler/master/eb_crawler/utils/taskinfo.csv')
-find_url_type(urls)
+
+temp_urls = []
+for i in range(0,10):
+    temp_urls.append(urls[i])
+
+find_url_type(temp_urls)
+# print(len(urls))
+# print(len(set(urls)))

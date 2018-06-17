@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+
 BASE_DIR = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 sys.path.insert(0, os.path.join(BASE_DIR, 'slave'))
 # Scrapy settings for slave project
@@ -66,12 +67,20 @@ DOWNLOADER_MIDDLEWARES = {
 #EXTENSIONS = {
 #    'scrapy.extensions.telnet.TelnetConsole': None,
 #}
+# Enables scheduling storing requests queue in redis.
+SCHEDULER = "scrapy_redis.scheduler.Scheduler"
 
+# Ensure all spiders share same duplicates filter through redis.
+DUPEFILTER_CLASS = "scrapy_redis.dupefilter.RFPDupeFilter"
+# SCHEDULER_PERSIST = True
+SCHEDULER_QUEUE_CLASS = 'scrapy_redis.queue.SpiderPriorityQueue'
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   # 'slave.pipelines.SlavePipeline': 300,
-    'slave.pipelines.MongoPipeline': 1,
+    # 'scrapy_redis.pipelines.RedisPipeline': 300,
+
+    # 'slave.pipelines.SlavePipeline': 300,
+    'slave.pipelines.MongoPipeline': 300,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -97,16 +106,18 @@ ITEM_PIPELINES = {
 
 
 #数据库配置
-MONGODB_SERVER = "139.224.112.239"
+MONGODB_SERVER = "localhost"
 MONGODB_PORT = 27017
 MONGODB_DB = "eb"
 
+
+
 # SCHEDULER = "scrapy_redis.scheduler.Scheduler"
-DUPEFILTER_CLASS = "scrapy_redis.dupefilter.RFPDupeFilter"
-SCHEDULER_PERSIST = True
+# DUPEFILTER_CLASS = "scrapy_redis.dupefilter.RFPDupeFilter"
+# SCHEDULER_PERSIST = True
 # SCHEDULER_QUEUE_CLASS = 'scrapy_redis.queue.SpiderPriorityQueue'
-REDIS_URL = None
-REDIS_HOST = '202.202.5.140' # 也可以根据情况改成 localhost
+# REDIS_URL = None
+REDIS_HOST = 'localhost' # 也可以根据情况改成 localhost
 REDIS_PORT = 6379
 #配置日志存储目录
 #LOG_FILE = "logs/scrapy.log"
