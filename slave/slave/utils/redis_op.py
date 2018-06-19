@@ -10,8 +10,7 @@ def redis_connect(host,port,db):
         return None
 def insert_data(r,type,str):
     try:
-        r.sadd(type, str)
+        res = r.lpush(type, str)
+        print(res)
     except:
         print('redis insert error')
-
-

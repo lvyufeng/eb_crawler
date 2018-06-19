@@ -38,7 +38,7 @@ def find_url_type(urls):
                         # print(type,url)
                         request = Request(url)
                         data = pickle.dumps(request_to_dict(request))
-                        insert_data(r,type,int(urls.index(url)),data)
+                        insert_data(r,type,data)
                     except Exception:
                         print(url)
                         print(Exception)
@@ -48,10 +48,10 @@ def find_url_type(urls):
         print('can not connect redis')
 urls = get_urls('/Users/lvyufeng/PycharmProjects/eb_crawler/master/eb_crawler/utils/taskinfo.csv')
 
-temp_urls = []
-for i in range(0,10):
-    temp_urls.append(urls[i])
+# temp_urls = []
+# for i in range(0,10):
+#     temp_urls.append(urls[i])
 
-find_url_type(temp_urls)
+find_url_type(urls)
 # print(len(urls))
 # print(len(set(urls)))

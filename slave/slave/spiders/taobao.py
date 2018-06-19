@@ -7,6 +7,9 @@ import os
 from items import TaobaoItem,TaobaoItemLoader
 from selenium.webdriver.support.ui import WebDriverWait
 from utils.redis_op import insert_data,redis_connect
+from scrapy import Request
+from scrapy.utils.reqser import request_to_dict
+import pickle
 
 class TaobaoSpider(RedisSpider):
     name = 'taobao'
@@ -15,6 +18,7 @@ class TaobaoSpider(RedisSpider):
     redis_key = 'taobao:requests'
 
     def __init__(self):
+        # self.count = 0
         self.failed_urls = []
         options = webdriver.ChromeOptions()
         prefs = {"profile.managed_default_content_settings.images": 2}
@@ -24,14 +28,18 @@ class TaobaoSpider(RedisSpider):
 
         self.browser = webdriver.Chrome(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'libs/chromedriver'),chrome_options=options)
         self.browser.set_window_size(500, 900)
-        # self.browser.
-        self.browser.set_page_load_timeout(5)
-        self.wait = WebDriverWait(self.browser, 5)
+
+        # self.browser.set_page_load_timeout(1)
+        # self.wait = WebDriverWait(self.browser, 1)
 
         super(TaobaoSpider,self).__init__()
         dispatcher.connect(self.spider_closed,signals.spider_closed)
         dispatcher.connect(self.write_back_failed_urls,signals.spider_error)
         dispatcher.connect(self.write_back_failed_urls, signals.item_dropped)
+
+    def set_browser(self,browser):
+        self.browser = browser
+        # self.count = count
 
 
     def write_back_failed_urls(self):
@@ -42,13 +50,17 @@ class TaobaoSpider(RedisSpider):
         if r != None:
             for url in self.failed_urls:
                 try:
-                    print(type,url)
-                    insert_data(r, 'taobao:requests', url)
+                    print(url)
+                    request = Request(url)
+                    data = pickle.dumps(request_to_dict(request))
+                    # insert_data(r, type, data)
+                    insert_data(r, 'taobao:requests', data)
                 except Exception as e:
                     print(url)
                     print(e)
                     break
             print('failed urls write back finished')
+            self.failed_urls = []
         else:
             print('can not connect redis')
 
@@ -79,7 +91,7 @@ class TaobaoSpider(RedisSpider):
         # elif str(response.url).find('trip') != -1:
         #     print('飞猪链接,url:{0}'.format(response.url))
         # else:
-        if str(response.url).find('https://h5.m.taobao.com/awp/core/detail.htm?id=') != -1 and response.body != '':
+        if str(response.url).find('https://h5.m.taobao.com/awp/core/detail.htm?id=') != -1 and response.body != 'error':
             item_loader = TaobaoItemLoader(item=TaobaoItem(),response=response)
             item_loader.add_value('productActualID',str(response.url).split('=')[-1])
             item_loader.add_value('productURL',response.url)
@@ -108,7 +120,14 @@ class TaobaoSpider(RedisSpider):
             # item_loader.add_xpath('productActualID','')
             # item_loader.add_xpath('productActualID','')
 
-            taobao_item = item_loader.load_item()
+
+            tmp_item = item_loader.load_item()
+            if 'productName' in list(tmp_item.keys()):
+                taobao_item = tmp_item
+            else:
+                self.failed_urls.append(response.url)
+                # self.count = self.count + 1
+                print('加载错误，重新写回redis')
         # 处理商品不存在
         elif str(response.url).split('=')[-1] == 'false':
             print('商品过期不存在,url:{0}'.format(response.url))
@@ -120,6 +139,8 @@ class TaobaoSpider(RedisSpider):
             print('闲鱼链接,url:{0}'.format(response.url))
         else:
             self.failed_urls.append(response.url)
+            # self.count = self.count + 1
+
             print('加载错误，重新写回redis')
 
         yield taobao_item
