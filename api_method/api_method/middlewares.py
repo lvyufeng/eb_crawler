@@ -6,7 +6,8 @@
 # https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
-
+from fake_useragent import UserAgent
+from scrapy.downloadermiddlewares.downloadtimeout import DownloadTimeoutMiddleware
 
 class ApiMethodSpiderMiddleware(object):
     # Not all methods need to be defined. If a method is not defined,
@@ -101,3 +102,37 @@ class ApiMethodDownloaderMiddleware(object):
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
+
+
+class RandomUserAgentMiddlware(object):
+    #随机更换user-agent
+    def __init__(self, crawler):
+        super(RandomUserAgentMiddlware, self).__init__()
+        self.ua = UserAgent()
+        self.ua_type = crawler.settings.get("RANDOM_UA_TYPE", "random")
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(crawler)
+
+    def process_request(self, request, spider):
+        def get_ua():
+            return getattr(self.ua, self.ua_type)
+        # import time
+        # time.sleep(0.5)
+        request.headers.setdefault('User-Agent', get_ua())
+
+class Timeout_Middleware(DownloadTimeoutMiddleware):
+    # def process_response(self, request, response, spider):
+    #     http_code = response.status
+    #     print "####timeout"
+    #     print http_code
+    #     print '######timeout'
+    #     # return request
+    def __init__(self):
+        super(Timeout_Middleware).__init__(1)
+
+    def process_exception(self,request, exception, spider):
+        # print "######the downloader return exception!"
+        print(exception)
+        return request.replace(dont_filter=True)
