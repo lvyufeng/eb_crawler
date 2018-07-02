@@ -5,7 +5,7 @@ import datetime
 import pymysql
 
 # 打开数据库连接
-db = pymysql.connect("139.224.112.239", "root", "1701sky", "ebmis_db",use_unicode=True, charset="utf8")
+db = pymysql.connect("localhost", "root", "1701sky", "ebmis_db",use_unicode=True, charset="utf8")
 
 # 使用 cursor() 方法创建一个游标对象 cursor
 cursor = db.cursor()
