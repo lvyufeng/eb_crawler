@@ -1,3 +1,9 @@
+# server config
+
+server = 'localhost'
+db = 'test'
+
+
 # sku api
 taobao_sku_api = 'http://h5api.m.taobao.com/h5/mtop.taobao.detail.getdetail/6.0/?data='
 

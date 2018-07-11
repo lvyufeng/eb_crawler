@@ -1,16 +1,17 @@
 import sys
-from utils.import_urls import get_urls
-import argparse
 
 try:
     from Queue import Queue  # py3
 except:
     from queue import Queue  # py2
 
-sys.path.append('../')
+# sys.path.append('../')
 
 from spiders.sku_spider import skuSpider
 from spiders.url_spider import urlSpider
+
+import pymongo
+import base.settings
 
 class generalSpider():
     def __init__(self):
