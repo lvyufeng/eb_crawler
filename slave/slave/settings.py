@@ -111,7 +111,6 @@ ITEM_PIPELINES = {
 
 #数据库配置
 # MONGODB_SERVER = "localhost"
-MONGODB_SERVER = "139.224.112.239"
 MONGODB_PORT = 27017
 MONGODB_DB = "eb"
 
@@ -123,7 +122,6 @@ SCHEDULER_PERSIST = True
 # SCHEDULER_QUEUE_CLASS = 'scrapy_redis.queue.SpiderPriorityQueue'
 # REDIS_URL = None
 # REDIS_HOST = 'localhost' # 也可以根据情况改成 localhost
-REDIS_HOST = '202.202.5.140' # 也可以根据情况改成 localhost
 REDIS_PORT = 6379
 #配置日志存储目录
 #LOG_FILE = "logs/scrapy.log"

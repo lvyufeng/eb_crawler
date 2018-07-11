@@ -99,6 +99,6 @@ RANDOM_UA_TYPE = "random"
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
-MONGODB_SERVER = "139.224.112.239"
+MONGODB_SERVER = "localhost"
 MONGODB_PORT = 27017
 MONGODB_DB = "eb"
