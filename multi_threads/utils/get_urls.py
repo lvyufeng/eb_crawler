@@ -1,27 +1,53 @@
 from urllib import parse
-from base import settings
 
-
-def get_urls(file_path,platform):
-    """
-    :param file_path: 文件路径
-    :param platform: 电商平台
-    :return: url list
-    """
-
-    urls = []
-    with open(file_path,encoding='ISO-8859-1') as f:
-        for line in f.readlines():
-            split_line = line.split(',')
-            # 'taobao' in split_line[0] or 'tmall'
-            if platform in split_line[0]:
-                id = split_line[0].strip('\"').split('=')[-1]
-                data = parse.quote('{"exParams":"{\"id\":\"'+id+'\"}","itemNumId":"'+id+'"}')
-                urls.append(settings.taobao_sku_api + data)
-            # print(urls)
-            # print(split_line)
-    f.close()
+def get_urls(db,conf):
+    keywords = [i['keyword'] for i in db.find()]
+    platform = conf.getStr('spider_config','platform')
+    if platform == 'taobao':
+        urls = generateTaobaoUrls(keywords,conf.getStr('url_api','taobao_url_api'))
+    else:
+        urls = []
+        # print(urls)
     return urls
+
+def generateTaobaoUrls(keywords,api,page_num=1,page_size=60):
+    # print(keywords,api)
+    if isinstance(keywords,list):
+        return [{
+            'api':api,
+            'page_size':str(page_size),
+            'page_num':str(page_num),
+            'query':i
+        } for i in keywords]
+    if isinstance(page_num,list):
+        return [{
+            'api': api,
+            'page_size': str(page_size),
+            'page_num': i,
+            'query': keywords
+        } for i in page_num]
+    # page = 2 & q =
+    # pass
+# def get_urls(file_path,platform):
+#     """
+#     :param file_path: 文件路径
+#     :param platform: 电商平台
+#     :return: url list
+#     """
+#
+#     urls = []
+#     with open(file_path,encoding='ISO-8859-1') as f:
+#         for line in f.readlines():
+#             split_line = line.split(',')
+#             # 'taobao' in split_line[0] or 'tmall'
+#             if platform in split_line[0]:
+#                 id = split_line[0].strip('\"').split('=')[-1]
+#                 data = parse.quote('{"exParams":"{\"id\":\"'+id+'\"}","itemNumId":"'+id+'"}')
+#                 urls.append(settings.taobao_sku_api + data)
+#             # print(urls)
+#             # print(split_line)
+#     f.close()
+#     return urls
 
 def get_inner_id(file_path,platform):
     """

@@ -1,6 +1,6 @@
 import pymongo
 import json
-from utils.import_urls import get_inner_id
+from utils.get_urls import get_inner_id
 import datetime
 import pymysql
 import time

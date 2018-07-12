@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import scrapy
-from utils.import_urls import get_urls
+from utils.get_urls import get_urls
 from utils.get_proxy import GetAllIPs
 import json
 import random

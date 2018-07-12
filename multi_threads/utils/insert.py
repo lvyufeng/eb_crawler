@@ -1,11 +1,14 @@
 import pymongo
+import sys
 
+sys.path.append('../')
+print(sys.path)
 def insert_keywords():
     client = pymongo.MongoClient('localhost', 27017)
     eb = client['test']
     db = eb['keywords']
     datas = []
-    with open('/Users/lvyufeng/PycharmProjects/eb_crawler/multi_threads/utils/keywords.csv', 'r+') as f:
+    with open('keywords.csv', 'r+') as f:
         for line in f.readlines():
             item = line.strip('\n').strip('"')
             data = {
@@ -22,7 +25,7 @@ def insert_product_info():
     db = eb['product_info']
     datas = []
     ids = []
-    with open('/Users/lvyufeng/PycharmProjects/eb_crawler/multi_threads/utils/product_baseinfo.csv','r+') as f:
+    with open('utils/product_baseinfo.csv','r+') as f:
         for line in f.readlines():
             item = line.split(',')
             data = {
@@ -40,4 +43,4 @@ def insert_product_info():
     print(len(ids))
     print(len(set(ids)))
 insert_keywords()
-insert_product_info()
+# insert_product_info()

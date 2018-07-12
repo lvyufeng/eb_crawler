@@ -10,7 +10,7 @@ import pymongo
 import datetime
 
 class skuSpider(Thread):
-    def __init__(self,queue,platform):
+    def __init__(self,queue,config):
         Thread.__init__(self)
         self.queue = queue
         self.proxies = GetAllIPs()
@@ -19,7 +19,7 @@ class skuSpider(Thread):
         self.eb = self.client['test']
         self.db = self.eb[platform + '_' + str(datetime.datetime.now().month)]
         # self.db = self.eb['tmall_06']
-
+        self.proxies_len = len(self.proxies)/2
 
     def run(self):
         while self.queue.qsize():
@@ -39,7 +39,7 @@ class skuSpider(Thread):
                         self.db.insert_one(data)
                         print('爬取成功')
                     else:
-                        if len(self.proxies) > 1:
+                        if len(self.proxies) > self.proxies_len:
                             self.proxies.remove(proxy)
                             print('代理{0}失效'.format(proxy))
                         else:
@@ -55,7 +55,7 @@ class skuSpider(Thread):
                     print('状态码：{0}'.format(wb_data.status_code),url)
             except:
                 self.queue.put(url)
-                if len(self.proxies) > 1:
+                if len(self.proxies) > self.proxies_len:
                     self.proxies.remove(proxy)
                     # print()
                     print('加载超时，重新写入Queue，代理{0}失效'.format(proxy))
