@@ -4,8 +4,7 @@ from selenium import webdriver
 from scrapy.xlib.pydispatch import dispatcher
 from scrapy import signals
 import os
-from items import TaobaoItem,TaobaoItemLoader
-from selenium.webdriver.support.ui import WebDriverWait
+from base.items import TaobaoItem,TaobaoItemLoader
 from utils.redis_op import insert_data,redis_connect
 from scrapy import Request
 from scrapy.utils.reqser import request_to_dict

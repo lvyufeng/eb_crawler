@@ -4,7 +4,7 @@ import pymongo
 client = pymongo.MongoClient('localhost',27017)
 # client = pymongo.MongoClient('localhost',27017)
 cars = client['eb']
-items = cars['from_api']
+items = cars['taobao_06']
 
 while True:
     print(items.count())

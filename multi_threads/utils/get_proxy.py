@@ -14,8 +14,9 @@ def GetIP():
 def GetAllIPs():
     url = 'http://localhost:5010/get_all/'
     wb_data = requests.get(url)
+    print(wb_data.content)
     proxies = []
-    for i in eval(wb_data.content):
+    for i in eval(wb_data.text):
         proxies.append(i)
     # print(len(proxies))
     return proxies
