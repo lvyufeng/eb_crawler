@@ -1,3 +1,4 @@
+import scrapy
 # -*- coding: utf-8 -*-
 
 # Define here the models for your scraped items
@@ -45,14 +46,9 @@ class TaobaoItem():
     # 规格
     deliveryStartArea = scrapy.Field()
     # 发货起始地址
-    productPrice = scrapy.Field(
-        input_processor=MapCompose(remove_tags,generate_price),
-    )
+    productPrice = scrapy.Field()
     # 商品原始价格
-    productPromPrice = scrapy.Field(
-        input_processor=MapCompose(remove_tags, generate_price),
-
-    )
+    productPromPrice = scrapy.Field()
     # 促销价格
     monthSaleCount = scrapy.Field()
     # 月销量

@@ -6,7 +6,7 @@ def GetIP():
     url = 'http://localhost:5010/get/'
     wb_data = requests.get(url)
     if wb_data.text != 'no proxy!':
-        return 'http://'+wb_data.text
+        return 'http://'+ wb_data.text
     else:
         # print(wb_data.text)
         return None

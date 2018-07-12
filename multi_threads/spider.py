@@ -7,6 +7,7 @@ import requests
 import json
 from utils.get_proxy import GetAllIPs
 import pymongo
+import pickle
 
 class Spider(Thread):
     def __init__(self, queue):
