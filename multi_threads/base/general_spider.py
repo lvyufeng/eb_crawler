@@ -20,6 +20,7 @@ class generalSpider():
         self.client = pymongo.MongoClient(self.cf.getStr('db', 'db_host'), self.cf.getInt('db', 'db_port'))
         # client = pymongo.MongoClient('localhost',27017)
         self.eb = self.client[self.cf.getStr('db', 'db_name')]
+        self.set = set()
 
     def __crawl(self):
         """
@@ -36,7 +37,7 @@ class generalSpider():
         thread_list = list()
         for index in range(self.cf.getInt('spider_config','threads')):
         # for index in range(20):
-            thread_list.append(Spider(self.queue,self.eb,self.cf))
+            thread_list.append(Spider(self.queue,self.set,self.eb,self.cf))
 
         for thread in thread_list:
             thread.daemon = True
@@ -47,6 +48,16 @@ class generalSpider():
 
         for thread in thread_list:
             thread.join()
+        self.insert_to_db()
+
+    def insert_to_db(self):
+        import time
+        while True:
+            time.sleep(60)
+            pop_list = [{'keyword':self.set.pop()} for i in range(10000)]
+            self.eb['url_test'].insert_many(pop_list)
+            print('insert success')
+
 
     def main(self):
         self.putQueue()

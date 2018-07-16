@@ -1,4 +1,4 @@
-
+import os
 
 test = []
 print(type(test) == list)

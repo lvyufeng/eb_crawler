@@ -9,14 +9,15 @@ import pymongo
 import datetime
 
 class urlSpider(Thread):
-    def __init__(self,queue,eb,config):
+    def __init__(self,queue,set,eb,config):
         Thread.__init__(self)
         self.queue = queue
-        self.proxies = GetAllIPs()
+        # self.proxies = GetAllIPs()
 
         # self.db = self.eb['product_info']
         self.db = eb['url_test']
-        # self.url_set = set()
+        self.url_set = set
+
 
     def run(self):
         while self.queue.qsize():
@@ -35,11 +36,12 @@ class urlSpider(Thread):
                 data = json.loads(wb_data.text)
                 if data['itemsArray']:
                     for i in data['itemsArray']:
-                        self.db.update({'item_id': i["item_id"]}, {'$set': i}, True)
-
+                        # self.db.update({'item_id': i["item_id"]}, {'$set': i}, True)
+                        self.url_set.add(i["item_id"])
                 else:
                     print(url,'found 0 items')
                 # print(data['totalPage'])
+                print(len(self.url_set))
                 if link['page_num'] == '1':
                     # print(link['query'],data['totalPage'])
                     #
