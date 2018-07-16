@@ -20,6 +20,7 @@ class FetchThread(BaseThread):
         """
         BaseThread.__init__(self, name, worker, pool)
         self._proxies = None
+        # self._proxies_order = 0
         return
 
     def working(self):
@@ -30,6 +31,8 @@ class FetchThread(BaseThread):
         if self._pool.get_proxies_flag() and (not self._proxies):
             self._proxies = self._pool.get_a_task(TPEnum.PROXIES)
 
+            # self._proxies_order = temp[0]
+        # print(self._proxies_order)
         # ----1----
         priority, counter, url, keys, deep, repeat = self._pool.get_a_task(TPEnum.URL_FETCH)
 
@@ -51,6 +54,8 @@ class FetchThread(BaseThread):
             self._pool.update_number_dict(TPEnum.PROXIES_FAIL, +1)
             self._pool.finish_a_task(TPEnum.PROXIES)
             self._proxies = None
+        else:
+            self._pool.add_a_task(TPEnum.PROXIES,self._proxies)
 
         # ----4----
         self._pool.finish_a_task(TPEnum.URL_FETCH)

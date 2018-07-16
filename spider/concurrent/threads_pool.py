@@ -9,7 +9,7 @@ import queue
 import logging
 import threading
 from .threads_inst import *
-from ..utilities import CONFIG_FETCH_MESSAGE, check_url_legal
+from ..utilities import CONFIG_FETCH_MESSAGE, check_url_legal, OrderedMapQueue
 
 
 class ThreadPool(object):
@@ -29,7 +29,7 @@ class ThreadPool(object):
         self._queue_fetch = queue.PriorityQueue()       # (priority, counter, url, keys, deep, repeat)
         self._queue_parse = queue.PriorityQueue()       # (priority, counter, url, keys, deep, content)
         self._queue_save = queue.Queue()                # (url, keys, item), item can be anything
-        self._queue_proxies = queue.Queue()             # {"http": "http://auth@ip:port", "https": "https://auth@ip:port"}
+        self._queue_proxies = OrderedMapQueue()             # {"http": "http://auth@ip:port", "https": "https://auth@ip:port"}
 
         self._thread_fetcher_list = []                  # fetcher threads list
         self._thread_parser = None                      # parser thread
@@ -63,7 +63,6 @@ class ThreadPool(object):
         # set monitor thread
         self._thread_monitor = MonitorThread("monitor", self, sleep_time=monitor_sleep_time)
         self._thread_monitor.setDaemon(True)
-        self._thread_monitor.start()
         logging.info("%s has been initialized", self.__class__.__name__)
         return
 
@@ -71,9 +70,16 @@ class ThreadPool(object):
         """
         set start url based on "priority", "keys" and "deep", keys must be a dictionary, and repeat must be 0
         """
-        assert check_url_legal(url), "set_start_url error, please pass legal url to this function"
-        self.add_a_task(TPEnum.URL_FETCH, (priority, self.get_number_dict(TPEnum.URL_FETCH_COUNT), url, keys or {}, deep, 0))
-        logging.debug("%s set_start_url: %s", self.__class__.__name__, CONFIG_FETCH_MESSAGE % (priority, keys or {}, deep, 0, url))
+
+        if isinstance(url,list):
+            for i in url:
+                assert check_url_legal(i), "set_start_url error, please pass legal url to this function"
+                self.add_a_task(TPEnum.URL_FETCH, (priority, self.get_number_dict(TPEnum.URL_FETCH_COUNT), i, keys or {}, deep, 0))
+        else:
+            assert check_url_legal(url), "set_start_url error, please pass legal url to this function"
+            self.add_a_task(TPEnum.URL_FETCH,
+                            (priority, self.get_number_dict(TPEnum.URL_FETCH_COUNT), url, keys or {}, deep, 0))
+            logging.debug("%s set_start_url: %s", self.__class__.__name__, CONFIG_FETCH_MESSAGE % (priority, keys or {}, deep, 0, url))
         return
 
     def start_working(self, fetcher_num=10):
@@ -103,6 +109,8 @@ class ThreadPool(object):
         if self._thread_proxieser:
             self._thread_proxieser.setDaemon(True)
             self._thread_proxieser.start()
+
+        self._thread_monitor.start()
 
         logging.info("%s starts success", self.__class__.__name__)
         return
@@ -186,7 +194,8 @@ class ThreadPool(object):
             self.update_number_dict(TPEnum.ITEM_SAVE_NOT, +1)
         elif task_name == TPEnum.PROXIES and self._thread_proxieser:
             self._queue_proxies.put_nowait(task_content)
-            self.update_number_dict(TPEnum.PROXIES_LEFT, +1)
+            sub = self._queue_proxies.qsize() - self.get_number_dict(TPEnum.PROXIES_LEFT)
+            self.update_number_dict(TPEnum.PROXIES_LEFT, sub)
         return
 
     def get_a_task(self, task_name):

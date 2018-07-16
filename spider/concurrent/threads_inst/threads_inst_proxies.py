@@ -19,16 +19,18 @@ class ProxiesThread(BaseThread):
         procedure of proxies, auto running, and return False if you need stop thread
         """
         # ----2----
-        proxies_result, proxies_list = self._worker.working()
+
+        if self._pool.get_number_dict(TPEnum.PROXIES_LEFT) < 10:
+            proxies_result, proxies_list = self._worker.working()
 
         # ----3----
-        for proxies in proxies_list:
-            self._pool.add_a_task(TPEnum.PROXIES, proxies)
+            for proxies in proxies_list:
+                self._pool.add_a_task(TPEnum.PROXIES, proxies)
 
         # ----*----
-        while (self._pool.get_number_dict(TPEnum.PROXIES_LEFT) > 100) and (not self._pool.is_all_tasks_done()):
-            logging.debug("%s[%s] sleep 5 seconds because of too many 'PROXIES_LEFT'...", self.__class__.__name__, self.getName())
-            time.sleep(5)
+        # while (self._pool.get_number_dict(TPEnum.PROXIES_LEFT) > 100) and (not self._pool.is_all_tasks_done()):
+        #     logging.debug("%s[%s] sleep 5 seconds because of too many 'PROXIES_LEFT'...", self.__class__.__name__, self.getName())
+        #     time.sleep(5)
 
         # ----*----
         while (not self._pool.get_thread_stop_flag()) and self._pool.is_all_tasks_done():
