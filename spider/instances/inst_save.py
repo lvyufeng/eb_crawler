@@ -6,19 +6,22 @@ inst_save.py by xianhu
 
 import sys
 import logging
-
+import pymongo
 
 class Saver(object):
     """
     class of Saver, must include function working()
     """
 
-    def __init__(self, save_pipe=sys.stdout):
+    def __init__(self, config):
         """
         constructor
         :param save_pipe: default sys.stdout, also can be a file handler
         """
-        self._save_pipe = save_pipe
+        self.cf = config
+        self.client = pymongo.MongoClient(self.cf.getStr('db', 'db_host'), self.cf.getInt('db', 'db_port'))
+        # client = pymongo.MongoClient('localhost',27017)
+        self.eb = self.client[self.cf.getStr('db', 'db_name')]
         return
 
     def working(self, url: str, keys: dict, item: (list, tuple)) -> int:
@@ -41,6 +44,5 @@ class Saver(object):
         """
         save the item of a url, you can rewrite this function, parameters and return refer to self.working()
         """
-        self._save_pipe.write("\t".join([str(col) for col in item]) + "\n")
-        self._save_pipe.flush()
+
         return 1

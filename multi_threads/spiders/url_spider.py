@@ -16,8 +16,7 @@ class urlSpider(Thread):
 
         # self.db = self.eb['product_info']
         self.db = eb['url_test']
-        self.url_set = set
-
+        self.url_set = set()
 
     def run(self):
         while self.queue.qsize():

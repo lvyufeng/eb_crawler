@@ -1,5 +1,3 @@
-import sys
-
 try:
     from Queue import Queue  # py3
 except:
@@ -8,7 +6,7 @@ except:
 # sys.path.append('../')
 
 
-from utils.config_parser import config_parser
+from spider.utilities.util_config_parser import config_parser
 from utils.get_urls import get_urls
 import pymongo
 
