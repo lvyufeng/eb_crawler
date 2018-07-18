@@ -15,16 +15,22 @@ def test_spider():
     # initial config parser
     config = config_parser()
     urls = get_urls(config)
+    print(urls.keys())
     for key in urls.keys():
         print(key)
         links = urls[key]
+
         if key == 'Tmall':
-            key = 'Taobao'
+            key = 'TaoBao'
         # initial fetcher / parser / saver
         fetcher = createInstance('crawlers',key+'SkuFetcher',max_repeat=1, sleep_time=0)
+        # parser = None
+        # saver = None
+        proxieser = None
+
         parser = createInstance('crawlers',key+'SkuParser',max_deep=1)
         saver = createInstance('crawlers',key+'SkuSaver',config)
-        proxieser = createInstance('crawlers',key+'SkuProxieser',sleep_time=1)
+        # proxieser = createInstance('crawlers',key+'SkuProxieser',sleep_time=1)
     # fetcher = SkuFetcher(max_repeat=1, sleep_time=0)
     # parser = SkuParser(max_deep=1)
     # saver = SkuSaver(config)
@@ -38,7 +44,7 @@ def test_spider():
         web_spider.set_start_url(links)
 
     # start web_spider
-        web_spider.start_working(fetcher_num=40)
+        web_spider.start_working(fetcher_num=10)
 
     # wait for finished
         web_spider.wait_for_finished()

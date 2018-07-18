@@ -2,3 +2,4 @@
 
 from .taobao_sku import *
 from .jd_sku import *
+from .suning_sku import *

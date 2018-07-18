@@ -11,7 +11,7 @@ def get_urls(config):
     print(platforms)
     id_list = {}
     for platform in platforms:
-        id_list[platform] = [i['sku_id'] for i in db.find({'platform':platform})]
+        id_list[platform] = [i for i in db.find({'platform':platform})]
         # id_list.append(ids)
 
     url_list = generate_urls(id_list,platforms)
@@ -29,14 +29,22 @@ def generate_urls(id_list,platforms):
     url_list = {}
     for platform in platforms:
         if platform == 'TaoBao' or platform == 'Tmall':
-            url_list[platform] = ['http://h5api.m.taobao.com/h5/mtop.taobao.detail.getdetail/6.0/?data=' + parse.quote('{"exParams":"{\"id\":\"' + i + '\"}","itemNumId":"' + i + '"}') for i in id_list[platform]]
+            pass
+            # url_list[platform] = ['http://h5api.m.taobao.com/h5/mtop.taobao.detail.getdetail/6.0/?data=' + parse.quote('{"exParams":"{\"id\":\"' + i['sku_id'] + '\"}","itemNumId":"' + i['sku_id'] + '"}') for i in id_list[platform]]
         elif platform == 'JingDong':
+            pass
             url_list[platform] = [
-                'http://item.jd.com/%s.html,'
-                'http://wq.jd.com/commodity/comment/getcommentlist?sku=%s,'
-                'http://c0.3.cn/stock?skuId=%s&area=1_72_4137_0&venderId={}&cat={}&extraParam='%(i,i,i) + parse.quote('{"originid":"1"}')
-                for i in id_list[platform]
+                'http://item.jd.com/%s.html'
+                %(i['sku_id']) for i in id_list[platform]
             ]
+        elif platform == 'SuNing':
+            # url_list[platform] = [
+            #     'http://product.suning.com/%s/%s.html,'
+            #     'https://shop.suning.com/jsonp/{}/shopinfo/shopinfo.html,' \
+            #     'https://pas.suning.com/nspcsale_0_{}_{}_{}_320_023_0230101_500353_1000333_9325_12583_Z001___R9006371.html' % (i['shop_id'],
+            #     i['sku_id']) for i in id_list[platform]
+            # ]
+            pass
 
 
     return url_list

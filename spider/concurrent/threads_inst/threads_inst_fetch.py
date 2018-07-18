@@ -66,4 +66,5 @@ class FetchThread(BaseThread):
             time.sleep(5)
 
         # ----5----
+        # del fetch_result, proxies_state, content
         return True

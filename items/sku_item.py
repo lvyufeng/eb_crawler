@@ -2,6 +2,9 @@ from .base_item import *
 
 class SkuItem(DictItem):
     productActualID = Field()
+
+    productCompleteID = Field()
+
     # 平台中自己的编号
     productURL = Field()
     # 链接

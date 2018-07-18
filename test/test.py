@@ -10,7 +10,7 @@ https://c0.3.cn/stock?skuId=11564571796&area=1_72_4137_0&venderId=186465&cat=122
 import re
 from bs4 import  BeautifulSoup
 import requests
-url = 'https://item.jd.com/10000087930.html'
+url = 'http://product.suning.com/136223634.html'
 # url='http://item.jd.com/10000031268.html'
 # url = 'https://chat1.jd.com/api/checkChat?pid=11564571796'
 
@@ -23,7 +23,7 @@ headers = {
 
 }
 jd_data=requests.get(url,headers=headers)
-# print(jd_data.content)
+print(jd_data.content)
 # p1 = r"itemover"
 p1 = r"(?<=sku-name\">\n).+?(?=<)"
 test = '''

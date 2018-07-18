@@ -196,12 +196,14 @@ class ThreadPool(object):
             self._queue_proxies.put_nowait(task_content)
             sub = self._queue_proxies.qsize() - self.get_number_dict(TPEnum.PROXIES_LEFT)
             self.update_number_dict(TPEnum.PROXIES_LEFT, sub)
+        # del task_content
         return
 
     def get_a_task(self, task_name):
         """
         get a task based on task_name, also for proxies
         """
+
         task_content = None
         if task_name == TPEnum.PROXIES:
             task_content = self._queue_proxies.get(block=True, timeout=5)
