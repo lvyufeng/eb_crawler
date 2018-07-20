@@ -35,8 +35,9 @@ class Parser(object):
         try:
             parse_result, url_list, save_list = self.htm_parse(priority, url, keys, deep, content)
         except Exception as excep:
+            # print(content)
             parse_result, url_list, save_list = -1, [], []
-            logging.error("%s error: %s, %s", self.__class__.__name__, excep, CONFIG_PARSE_MESSAGE % (priority, keys, deep, url))
+            logging.error("%s error: %s, %s", self.__class__.__name__, excep.args, CONFIG_PARSE_MESSAGE % (priority, keys, deep, url))
 
         logging.debug("%s end: parse_result=%s, len(url_list)=%s, len(save_list)=%s, url=%s", self.__class__.__name__, parse_result, len(url_list), len(save_list), url)
         return parse_result, url_list, save_list

@@ -1,9 +1,8 @@
 import spider
 import requests
 import json
-import time
-import random
 import re
+import time
 import datetime
 from items import SkuItem
 from urllib import parse
@@ -13,16 +12,22 @@ class JingDongSkuFetcher(spider.Fetcher):
     fetcher module, only rewrite url_fetch()
     """
     def url_fetch(self, priority: int, url: str, keys: dict, deep: int, repeat: int, proxies=None):
+
+
         # urls = url.split(',')
-        # time.sleep(random.choice((1,2)))
+        if repeat > 5:
+            # print(url)
+            time.sleep(5)
+            return -1, False, None
         proxies = {
                 "http": proxies,
                 "https": proxies,
         }
         try:
-            main_response = requests.get(url, proxies=proxies)
+            main_response = requests.get(url, proxies=proxies, timeout= 3)
             if main_response.status_code != 200:
                 return 0, False, None
+            # print(main_response.text)
             return 1, True, main_response.text
 
         except Exception as e:
@@ -45,14 +50,14 @@ class JingDongSkuParser(spider.Parser):
             id = url.split('/')[-1].split('.')[0]
             remover = re.compile(r"itemover").findall(content)
             if remover:
-                return -1, None, None
+                return -1, [], []
             venderId = re.compile(r"(?<=venderId:).+?(?=,)").findall(content)
             cat = re.compile(r"(?<=cat: \[).+?(?=\],)").findall(content)
             if venderId and cat:
                 detail_url = 'http://c0.3.cn/stock?skuId=%s' %id +'&area=1_72_4137_0&venderId={}&cat={}&extraParam='.format(venderId[0], cat[0]) + parse.quote('{"originid":"1"}')
                 url_list.append((detail_url, keys, priority-1))
             else:
-                return -1, None, None
+                return -1, [], []
             comment_url = 'http://wq.jd.com/commodity/comment/getcommentlist?sku=%s' %id
             url_list.append((comment_url, keys, priority-1))
 
@@ -66,6 +71,7 @@ class JingDongSkuParser(spider.Parser):
             item['specification'] = re.compile(r"(?<=>规格：).+?(?=<)").findall(content)
 
         elif 'commodity' in url:
+            # print(content)
             temp = str(content).strip().strip('commentCB(').strip(')')
             comment = json.loads(temp)
             item['commentCount'] = comment["result"]["productCommentSummary"]["CommentCount"]
@@ -101,19 +107,25 @@ class JingDongSkuParser(spider.Parser):
 
 
         else:
-            return -1, None, None
+            return -1, [], []
 
         return 1, url_list, [item]
 
 class JingDongSkuSaver(spider.Saver):
+
+    def __init__(self, config):
+        super(JingDongSkuSaver,self).__init__(config)
+        self.db = self.eb['JingDong_' + str(datetime.datetime.now().month)]
+        return
+
 
     def item_save(self, url: str, keys: dict, item: (list, tuple)):
         """
         save the item of a url, you can rewrite this function, parameters and return refer to self.working()
         """
         # print(type(item))
-        db = self.eb['jd_' + str(datetime.datetime.now().month)]
-        db.update({'productActualID': item["productActualID"]}, {'$set': item},True)
+
+        self.db.update({'productActualID': item["productActualID"]}, {'$set': item},True)
         return 1
 
 class JingDongSkuProxieser(spider.Proxieser):

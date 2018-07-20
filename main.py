@@ -1,6 +1,7 @@
 import logging
 from spider import config_parser,WebSpider,get_urls
-# from crawlers import *
+import random
+
 
 def createInstance(module_name, class_name, *args, **kwargs):
     module_meta = __import__(module_name, globals(), locals(), [class_name])
@@ -15,39 +16,30 @@ def test_spider():
     # initial config parser
     config = config_parser()
     urls = get_urls(config)
-    print(urls.keys())
-    for key in urls.keys():
-        print(key)
-        links = urls[key]
+    key = config.getStr('spider_config', 'platform')
+    links = urls[key]
 
-        if key == 'Tmall':
-            key = 'TaoBao'
-        # initial fetcher / parser / saver
-        fetcher = createInstance('crawlers',key+'SkuFetcher',max_repeat=1, sleep_time=0)
-        # parser = None
-        # saver = None
-        proxieser = None
+    # initial fetcher / parser / saver
+    fetcher = createInstance('crawlers',key+'SkuFetcher',max_repeat=1, sleep_time=0)
+    # parser = None
+    # saver = None
+    proxieser = None
 
-        parser = createInstance('crawlers',key+'SkuParser',max_deep=1)
-        saver = createInstance('crawlers',key+'SkuSaver',config)
-        # proxieser = createInstance('crawlers',key+'SkuProxieser',sleep_time=1)
-    # fetcher = SkuFetcher(max_repeat=1, sleep_time=0)
-    # parser = SkuParser(max_deep=1)
-    # saver = SkuSaver(config)
-    # proxieser = SkuProxieser(sleep_time=1)
+    parser = createInstance('crawlers',key+'SkuParser',max_deep=1)
+    saver = createInstance('crawlers',key+'SkuSaver',config)
+    # proxieser = createInstance('crawlers',key+'SkuProxieser',sleep_time=1)
 
     # initial web_spider
-        web_spider = WebSpider(fetcher, parser, saver, proxieser, monitor_sleep_time=1)
-
+    web_spider = WebSpider(fetcher, parser, saver, proxieser, monitor_sleep_time=1)
 
     # add start url
-        web_spider.set_start_url(links)
+    web_spider.set_start_url(links)
 
     # start web_spider
-        web_spider.start_working(fetcher_num=10)
+    web_spider.start_working(fetcher_num=config.getInt('spider_config', 'threads'))
 
     # wait for finished
-        web_spider.wait_for_finished()
+    web_spider.wait_for_finished()
 
     return
 
