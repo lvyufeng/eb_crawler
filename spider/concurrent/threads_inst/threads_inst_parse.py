@@ -29,8 +29,12 @@ class ParseThread(BaseThread):
                 self._pool.add_a_task(TPEnum.URL_FETCH, (_priority, self._pool.get_number_dict(TPEnum.URL_FETCH_COUNT), _url, _keys, deep+1, 0))
             for item in save_list:
                 self._pool.add_a_task(TPEnum.ITEM_SAVE, (url, keys, item))
+        elif parse_result == 0:
+            for _url, _keys, _priority in url_list:
+                self._pool.add_a_task(TPEnum.URL_FETCH, (_priority, self._pool.get_number_dict(TPEnum.URL_FETCH_COUNT), _url, _keys, deep, 0))
         else:
             self._pool.update_number_dict(TPEnum.HTM_PARSE_FAIL, +1)
+
 
         # ----4----
         self._pool.finish_a_task(TPEnum.HTM_PARSE)

@@ -17,23 +17,23 @@ def test_spider():
     config = config_parser()
     urls = get_urls(config)
     key = config.getStr('spider_config', 'platform')
-    links = urls[key]
+    # links = urls[key]
 
     # initial fetcher / parser / saver
     fetcher = createInstance('crawlers',key+'SkuFetcher',max_repeat=1, sleep_time=0)
     # parser = None
     # saver = None
-    proxieser = None
+    # proxieser = None
 
     parser = createInstance('crawlers',key+'SkuParser',max_deep=1)
     saver = createInstance('crawlers',key+'SkuSaver',config)
-    # proxieser = createInstance('crawlers',key+'SkuProxieser',sleep_time=1)
+    proxieser = createInstance('crawlers',key+'SkuProxieser',sleep_time=1)
 
     # initial web_spider
     web_spider = WebSpider(fetcher, parser, saver, proxieser, monitor_sleep_time=1)
 
     # add start url
-    web_spider.set_start_url(links)
+    web_spider.set_start_url(urls)
 
     # start web_spider
     web_spider.start_working(fetcher_num=config.getInt('spider_config', 'threads'))

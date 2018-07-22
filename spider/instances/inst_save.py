@@ -6,7 +6,7 @@ inst_save.py by xianhu
 
 import sys
 import logging
-# import pymongo
+import pymysql
 
 class Saver(object):
     """
@@ -19,6 +19,10 @@ class Saver(object):
         :param save_pipe: default sys.stdout, also can be a file handler
         """
         self.cf = config
+        self.db = pymysql.connect(config.getStr('mysql', 'host'), config.getStr('mysql', 'user'),
+                                       config.getStr('mysql', 'passwd'), config.getStr('mysql', 'db'), use_unicode=True,
+                                       charset="utf8")
+        self.cursor = self.db.cursor()
         # self.client = pymongo.MongoClient(self.cf.getStr('db', 'db_host'), self.cf.getInt('db', 'db_port'))
         # # client = pymongo.MongoClient('localhost',27017)
         # self.eb = self.client[self.cf.getStr('db', 'db_name')]

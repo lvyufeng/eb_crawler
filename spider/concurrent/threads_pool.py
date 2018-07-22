@@ -71,10 +71,17 @@ class ThreadPool(object):
         set start url based on "priority", "keys" and "deep", keys must be a dictionary, and repeat must be 0
         """
 
-        if isinstance(url,list):
+        if isinstance(url,tuple):
             for i in url:
-                assert check_url_legal(i), "set_start_url error, please pass legal url to this function"
-                self.add_a_task(TPEnum.URL_FETCH, (priority, self.get_number_dict(TPEnum.URL_FETCH_COUNT), i, keys or {}, deep, 0))
+                try:
+                    check_url_legal(i[2]), "set_start_url error, please pass legal url to this function"
+                except:
+                    print(i)
+                    continue
+                self.add_a_task(TPEnum.URL_FETCH, (priority, self.get_number_dict(TPEnum.URL_FETCH_COUNT), i[2], {
+                    'Website':i[5],
+                    'productInnerId':i[14]
+                } or {}, deep, 0))
         else:
             assert check_url_legal(url), "set_start_url error, please pass legal url to this function"
             self.add_a_task(TPEnum.URL_FETCH,

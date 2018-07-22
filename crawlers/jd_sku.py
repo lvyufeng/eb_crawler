@@ -48,32 +48,43 @@ class JingDongSkuParser(spider.Parser):
         #
         if 'item' in url:
             id = url.split('/')[-1].split('.')[0]
+            # 判断是否是移除或下架产品
             remover = re.compile(r"itemover").findall(content)
             if remover:
                 return -1, [], []
+            # 获取类别和卖家id
             venderId = re.compile(r"(?<=venderId:).+?(?=,)").findall(content)
             cat = re.compile(r"(?<=cat: \[).+?(?=\],)").findall(content)
+            # 若存在两者，构造详情信息页面url；
+            # 否则返回失败
             if venderId and cat:
                 detail_url = 'http://c0.3.cn/stock?skuId=%s' %id +'&area=1_72_4137_0&venderId={}&cat={}&extraParam='.format(venderId[0], cat[0]) + parse.quote('{"originid":"1"}')
                 url_list.append((detail_url, keys, priority-1))
             else:
                 return -1, [], []
+            # 构造评论信息页面url
             comment_url = 'http://wq.jd.com/commodity/comment/getcommentlist?sku=%s' %id
             url_list.append((comment_url, keys, priority-1))
 
+            # 解析数据，使用正则表达式解析，返回值为list
+            item['website'] = [str(keys['Website'])]
+            item['productInnerId'] = [str(keys['productInnerId'])]
+            item['productURL'] = [url]
+
             item['productActualID'] = re.compile(r"(?<=skuid:).+?(?=,)").findall(content)
             item['productName'] = re.compile(r"(?<=sku-name\">\n).+?(?=<)").findall(content)
-            item['weight'] = re.compile(r"(?<=>重量：).+?(?=<)").findall(content)[0]
-            item['origin'] = re.compile(r"(?<=>商品产地：).+?(?=<)").findall(content)[0]
-            item['category'] = re.compile(r"(?<=>分类：).+?(?=<)").findall(content)[0]
+            item['weight'] = re.compile(r"(?<=>重量：).+?(?=<)").findall(content)
+            item['origin'] = re.compile(r"(?<=>商品产地：).+?(?=<)").findall(content)
+            item['category'] = re.compile(r"(?<=>分类：).+?(?=<)").findall(content)
             item['specialtyCategory'] = re.compile(r"(?<=>品种：).+?(?=<)").findall(content)
             item['brand'] = re.compile(r"(?<= <li title=\').+?(?=\'>品牌)").findall(content)
             item['specification'] = re.compile(r"(?<=>规格：).+?(?=<)").findall(content)
+            # 取出list中解析得到的数据
             for k,v in item.items():
                 item[k] = v[0].strip() if v else ''
 
         elif 'commodity' in url:
-            # print(content)
+            # 解析评论信息
             temp = str(content).strip().strip('commentCB(').strip(')')
             comment = json.loads(temp)
             item['commentCount'] = comment["result"]["productCommentSummary"]["CommentCount"]
@@ -81,10 +92,12 @@ class JingDongSkuParser(spider.Parser):
 
 
         elif 'stock' in url:
+            # 解析详情信息
             detail = json.loads(content)
             item['productActualID'] = str(detail["stock"]["realSkuId"])
             item['productPrice'] = detail["stock"]["jdPrice"]["op"]
             item['productPromPrice'] = detail["stock"]["jdPrice"]["p"]
+            # 商户信息存在 detail["stock"]["D"]
             if 'D' in detail["stock"]:
                 item['deliveryStartArea'] = detail["stock"]["D"]["df"]
                 item['storeActualID'] = detail["stock"]["D"]["vid"]
@@ -92,6 +105,7 @@ class JingDongSkuParser(spider.Parser):
                 item['storeURL'] = detail["stock"]["D"]["url"]
                 item['companyName'] = detail["stock"]["D"]["vender"]
                 item['storeLocation'] = detail["stock"]["D"]["df"]
+            # 商户信息存在 detail["stock"]["self_D"]
             elif 'self_D' in detail["stock"]:
                 item['deliveryStartArea'] = detail["stock"]["self_D"]["df"]
                 item['storeActualID'] = detail["stock"]["self_D"]["vid"]
@@ -100,7 +114,7 @@ class JingDongSkuParser(spider.Parser):
 
                 item['companyName'] = detail["stock"]["self_D"]["vender"]
                 item['storeLocation'] = detail["stock"]["self_D"]["df"]
-
+            # 商户信息不存在
             else:
                 item['deliveryStartArea'] = None
                 item['storeActualID'] = None
@@ -110,8 +124,8 @@ class JingDongSkuParser(spider.Parser):
                 item['companyName'] = None
                 item['storeLocation'] = None
 
-
         else:
+            # 无效url返回的content
             return -1, [], []
 
         return 1, url_list, [item]
@@ -120,7 +134,7 @@ class JingDongSkuSaver(spider.Saver):
 
     def __init__(self, config):
         super(JingDongSkuSaver,self).__init__(config)
-        self.db = self.eb['JingDong_' + str(datetime.datetime.now().month)]
+        self.count = 0
         return
 
 
@@ -130,7 +144,30 @@ class JingDongSkuSaver(spider.Saver):
         """
         # print(type(item))
 
-        self.db.update({'productActualID': item["productActualID"]}, {'$set': item},True)
+        if 'item' in url:
+            insert_sql = 'insert into data_201806(' + ','.join(item.keys()) + ') VALUES(' + ','.join(['%s' for key in item.keys()]) + ')'
+            try:
+                self.cursor.execute(insert_sql, tuple(str(item[key]) for key in item.keys()))
+                self.count = self.count + 1
+            except:
+                pass
+            # pass
+
+        else:
+            update_sql = "UPDATE data_201806 SET "
+            where_condition = " WHERE productActualID = '%s'" % (item['productActualID'])
+            item.pop('productActualID')
+            mid = ','.join([key + "=" + "'%s'" %(str(item[key]))for key in item.keys()])
+            try:
+                self.cursor.execute(update_sql + mid + where_condition)
+                self.count = self.count + 1
+            except Exception as e:
+                pass
+
+        if self.count % 1000 == 0:
+            self.db.commit()
+
+        # self.db.update({'productActualID': item["productActualID"]}, {'$set': item},True)
         return 1
 
 class JingDongSkuProxieser(spider.Proxieser):

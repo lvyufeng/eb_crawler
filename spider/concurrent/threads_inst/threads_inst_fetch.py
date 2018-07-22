@@ -63,7 +63,7 @@ class FetchThread(BaseThread):
         # ----*----
         while (self._pool.get_number_dict(TPEnum.HTM_PARSE_NOT) > 500) or (self._pool.get_number_dict(TPEnum.ITEM_SAVE_NOT) > 500):
             logging.debug("%s[%s] sleep 5 seconds because of too many 'HTM_PARSE_NOT' or 'ITEM_SAVE_NOT'...", self.__class__.__name__, self.getName())
-            time.sleep(5)
+            time.sleep(10)
 
         # ----5----
         # del fetch_result, proxies_state, content
