@@ -109,3 +109,4 @@ nnn
 #csv
 *.csv
 chromedriver
+.DS_Store
