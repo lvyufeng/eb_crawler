@@ -60,7 +60,7 @@ for i in all:
     i['website'] = config.getStr('spider_config', 'platform')
     keys = list(i.keys())
 
-    insert_sql = 'insert into data_201806(' + ','.join(keys) + ') VALUES(' + ','.join(['%s' for key in keys]) + ')'
+    insert_sql = 'insert into data_201806_backup(' + ','.join(keys) + ') VALUES(' + ','.join(['%s' for key in keys]) + ')'
     # print(insert_sql)
     try:
         cursor.execute(insert_sql,tuple(str(i[key]) for key in keys))

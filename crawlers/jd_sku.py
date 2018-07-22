@@ -61,42 +61,47 @@ class JingDongSkuParser(spider.Parser):
             comment_url = 'http://wq.jd.com/commodity/comment/getcommentlist?sku=%s' %id
             url_list.append((comment_url, keys, priority-1))
 
-            item['productActualID'] = int(re.compile(r"(?<=skuid:).+?(?=,)").findall(content)[0])
+            item['productActualID'] = re.compile(r"(?<=skuid:).+?(?=,)").findall(content)
             item['productName'] = re.compile(r"(?<=sku-name\">\n).+?(?=<)").findall(content)
-            item['weight'] = re.compile(r"(?<=>重量：).+?(?=<)").findall(content)
-            item['origin'] = re.compile(r"(?<=>商品产地：).+?(?=<)").findall(content)
-            item['category'] = re.compile(r"(?<=>分类：).+?(?=<)").findall(content)
+            item['weight'] = re.compile(r"(?<=>重量：).+?(?=<)").findall(content)[0]
+            item['origin'] = re.compile(r"(?<=>商品产地：).+?(?=<)").findall(content)[0]
+            item['category'] = re.compile(r"(?<=>分类：).+?(?=<)").findall(content)[0]
             item['specialtyCategory'] = re.compile(r"(?<=>品种：).+?(?=<)").findall(content)
-            item['brand'] = re.compile(r"(?<=>品牌：).+?(?=</a>)").findall(content)
+            item['brand'] = re.compile(r"(?<= <li title=\').+?(?=\'>品牌)").findall(content)
             item['specification'] = re.compile(r"(?<=>规格：).+?(?=<)").findall(content)
+            for k,v in item.items():
+                item[k] = v[0].strip() if v else ''
 
         elif 'commodity' in url:
             # print(content)
             temp = str(content).strip().strip('commentCB(').strip(')')
             comment = json.loads(temp)
             item['commentCount'] = comment["result"]["productCommentSummary"]["CommentCount"]
-            item['productActualID'] = comment["result"]["productCommentSummary"]["SkuId"]
+            item['productActualID'] = str(comment["result"]["productCommentSummary"]["SkuId"])
 
 
         elif 'stock' in url:
             detail = json.loads(content)
-            item['productActualID'] = detail["stock"]["realSkuId"]
+            item['productActualID'] = str(detail["stock"]["realSkuId"])
             item['productPrice'] = detail["stock"]["jdPrice"]["op"]
             item['productPromPrice'] = detail["stock"]["jdPrice"]["p"]
-            try:
-                item['deliveryStartArea'] = detail["stock"]["D"]["df"] if 'D' in detail["stock"] else \
-                    detail["stock"]["self_D"]["df"]
-                item['storeActualID'] = detail["stock"]["D"]["vid"] if 'D' in detail["stock"] else \
-                detail["stock"]["self_D"]["vid"]
-                item['storeName'] = detail["stock"]["D"]["vender"] if 'D' in detail["stock"] else detail["stock"]["self_D"][
-                    "vender"]
-                item['storeURL'] = detail["stock"]["D"]["url"] if 'D' in detail["stock"] else detail["stock"]["self_D"][
-                    "url"]
+            if 'D' in detail["stock"]:
+                item['deliveryStartArea'] = detail["stock"]["D"]["df"]
+                item['storeActualID'] = detail["stock"]["D"]["vid"]
+                item['storeName'] = detail["stock"]["D"]["vender"]
+                item['storeURL'] = detail["stock"]["D"]["url"]
+                item['companyName'] = detail["stock"]["D"]["vender"]
+                item['storeLocation'] = detail["stock"]["D"]["df"]
+            elif 'self_D' in detail["stock"]:
+                item['deliveryStartArea'] = detail["stock"]["self_D"]["df"]
+                item['storeActualID'] = detail["stock"]["self_D"]["vid"]
+                item['storeName'] = detail["stock"]["self_D"]["vender"]
+                item['storeURL'] = detail["stock"]["self_D"]["url"]
 
-                item['companyName'] = detail["stock"]["D"]["vender"] if 'D' in detail["stock"] else \
-                detail["stock"]["self_D"]["vender"]
-                item['storeLocation'] = detail["stock"]["D"]["df"] if 'D' in detail["stock"] else detail["stock"]["self_D"]["df"]
-            except:
+                item['companyName'] = detail["stock"]["self_D"]["vender"]
+                item['storeLocation'] = detail["stock"]["self_D"]["df"]
+
+            else:
                 item['deliveryStartArea'] = None
                 item['storeActualID'] = None
                 item['storeName'] = None
