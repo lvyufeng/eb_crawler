@@ -20,7 +20,7 @@ class ProxiesThread(BaseThread):
         """
         # ----2----
 
-        if self._pool.get_number_dict(TPEnum.PROXIES_LEFT) < 10:
+        if self._pool.get_number_dict(TPEnum.PROXIES_LEFT) < 20:
             proxies_result, proxies_list = self._worker.working()
 
         # ----3----

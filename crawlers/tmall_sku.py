@@ -1,3 +1,5 @@
+# YouLeGou
+
 import spider
 import requests
 import json
@@ -7,7 +9,7 @@ from urllib import parse
 from items import SkuItem
 from fake_useragent import UserAgent
 
-class TaoBaoSkuFetcher(spider.Fetcher):
+class YouLeGouSkuFetcher(spider.Fetcher):
     """
     fetcher module, only rewrite url_fetch()
     """
@@ -49,7 +51,7 @@ class TaoBaoSkuFetcher(spider.Fetcher):
             return 0, False, None
 
 
-class TaoBaoSkuParser(spider.Parser):
+class YouLeGouSkuParser(spider.Parser):
     """
     parser module, only rewrite htm_parse()
     """
@@ -135,10 +137,10 @@ class TaoBaoSkuParser(spider.Parser):
 
         return 1, url_list, [item]
 
-class TaoBaoSkuSaver(spider.Saver):
+class YouLeGouSkuSaver(spider.Saver):
 
     def __init__(self, config):
-        super(TaoBaoSkuSaver,self).__init__(config)
+        super(YouLeGouSkuSaver,self).__init__(config)
         self.count = 0
         return
 
@@ -160,7 +162,7 @@ class TaoBaoSkuSaver(spider.Saver):
 
         return 1
 
-class TaoBaoSkuProxieser(spider.Proxieser):
+class YouLeGouSkuProxieser(spider.Proxieser):
 
     def proxies_get(self):
         url = 'http://127.0.0.1:5010/get_all/?name=TaoBao_proxy'

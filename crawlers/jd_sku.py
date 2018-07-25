@@ -148,9 +148,11 @@ class JingDongSkuSaver(spider.Saver):
             insert_sql = 'insert into data_201806(' + ','.join(item.keys()) + ') VALUES(' + ','.join(['%s' for key in item.keys()]) + ')'
             try:
                 self.cursor.execute(insert_sql, tuple(str(item[key]) for key in item.keys()))
-                self.count = self.count + 1
-            except:
-                pass
+                self.db.commit()
+
+                # self.count = self.count + 1
+            except Exception as e:
+                return -1
             # pass
 
         else:
@@ -160,12 +162,13 @@ class JingDongSkuSaver(spider.Saver):
             mid = ','.join([key + "=" + "'%s'" %(str(item[key]))for key in item.keys()])
             try:
                 self.cursor.execute(update_sql + mid + where_condition)
-                self.count = self.count + 1
-            except Exception as e:
-                pass
+                self.db.commit()
 
-        if self.count % 1000 == 0:
-            self.db.commit()
+                # self.count = self.count + 1
+            except Exception as e:
+                return -1
+
+        # if self.count % 1000 == 0:
 
         # self.db.update({'productActualID': item["productActualID"]}, {'$set': item},True)
         return 1

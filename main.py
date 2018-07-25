@@ -16,18 +16,26 @@ def test_spider():
     # initial config parser
     config = config_parser()
     urls = get_urls(config)
+    # print(urls[-3304])
+    # urls = urls[-3500:-1]
     key = config.getStr('spider_config', 'platform')
+    print(key)
+    if key == 'Tmall':
+        key = 'TaoBao'
+
     # links = urls[key]
 
     # initial fetcher / parser / saver
     fetcher = createInstance('crawlers',key+'SkuFetcher',max_repeat=1, sleep_time=0)
     # parser = None
     # saver = None
-    # proxieser = None
 
     parser = createInstance('crawlers',key+'SkuParser',max_deep=1)
     saver = createInstance('crawlers',key+'SkuSaver',config)
-    proxieser = createInstance('crawlers',key+'SkuProxieser',sleep_time=1)
+    if key == 'TaoBao':
+        proxieser = createInstance('crawlers',key+'SkuProxieser',sleep_time=1)
+    else:
+        proxieser = None
 
     # initial web_spider
     web_spider = WebSpider(fetcher, parser, saver, proxieser, monitor_sleep_time=1)
