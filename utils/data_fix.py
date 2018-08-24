@@ -6,6 +6,8 @@ table_wait_fix = 'data_201804'
 store_base = 'store_baseinfo'
 product_base = 'product_baseinfo'
 
+
+
 # basic util
 def mysql_connect(ip,username,password,database):
     # 打开数据库连接
@@ -142,6 +144,7 @@ def compute_store_price(store_id,actual_total):
     db, cursor = mysql_connect('localhost', 'root', '19960704', 'ebmis_db')
     product_ids = query_store_product_ids(cursor,store_id)
     result = []
+    remove = []
     product_valid_totals = [i[1]*decimal.Decimal(i[2]) if i[3]==1 else 0 for i in product_ids]
     product_invalid_totals = [i[1]*decimal.Decimal(i[2]) if i[3]==0 else 0 for i in product_ids]
     product_prices = [i[1] for i in product_ids]
@@ -158,6 +161,8 @@ def compute_store_price(store_id,actual_total):
         elif nums[index] != 0:
             item[2] = nums[index]
             result.append(item)
+        else:
+            remove.append(item)
     # print(result)
     # return product_ids
     total = sum([i[1]*decimal.Decimal(i[2]) for i in result])
@@ -165,6 +170,7 @@ def compute_store_price(store_id,actual_total):
         product_ids[product_prices.index(min(product_prices))][2] += int((actual_total - total) / min(product_prices))
     else:
         item = product_ids[product_prices.index(min(product_prices))]
+        remove.remove(item)
         item[2] = int((actual_total - total) / min(product_prices))
         result.append(item)
 
@@ -172,30 +178,64 @@ def compute_store_price(store_id,actual_total):
     total = sum([i[1] * decimal.Decimal(i[2]) for i in result])
 
 
-
-    return result
+    # return actual_total,total
+    # print(len(product_ids))
+    return result,remove
     pass
 def compute_top20_store(platform,sheet_name):
     path = '/Users/lvyufeng/PycharmProjects/eb_crawler/utils/2018年04月度报表批注.xlsx'
     db, cursor = mysql_connect('139.224.112.239', 'root', '1701sky', 'ebmis_db')
     workbook = excel_read(path)
     sheet = sheet_read(workbook, sheet_name)
-    datas = []
+    update_datas = []
+    remove_datas = []
     for i in range(2,sheet.nrows):
         # print(sheet.cell_value(i,6))
         store_id = query_store_id(cursor, sheet.cell_value(i,1),platform)
-        result = compute_store_price(store_id,decimal.Decimal(sheet.cell_value(i,3) * 10000))
-        print(i,store_id,result)
+        result,remove = compute_store_price(store_id,decimal.Decimal(sheet.cell_value(i,3) * 10000))
+        update_datas.extend(result)
+        remove_datas.extend(remove)
         # datas.append(store_id)
     db.close()
     # print(datas)
-    return datas
+    return update_datas,remove_datas
 
 
 # compute_top20_store('Tmall','2.1')
-compute_top20_store('TaoBao','2.2')
+# compute_top20_store('TaoBao','2.2')
 
 # for different sheet fix
+def prepare():
+    db, cursor = mysql_connect('localhost', 'root', '19960704', 'ebmis_db')
+    sql = 'SELECT productActualID,std_stdProductPrice,std_stdProductPromPrice,std_stdPrice FROM ' + table_wait_fix + ' WHERE isValid = %s'
+    results = []
+    sqls = []
+    try:
+        # 执行SQL语句
+        cursor.execute(sql, 1)
+        # 获取所有记录列表
+        results = cursor.fetchall()
+
+    except Exception as e:
+        print("Error: unable to fetch data", e)
+    for i in results:
+        if i[3] == None and i[2] == None and i[1] != None:
+            update_single_product(db,cursor,{
+                                  'productActualID':i[0],
+                                  'std_stdPrice':i[1]})
+        elif i[3] == None and i[2] != None and i[1] == None:
+            update_single_product(db,cursor,{
+                'productActualID': i[0],
+                'std_stdPrice':i[2]})
+        elif i[3] == None and i[2] != None and i[1] != None:
+            update_single_product(db, cursor, {
+                'productActualID': i[0],
+                'std_stdPrice': min(i[2],i[1])})
+        else:
+            pass
+    pass
+
+
 def top20_sku_fix():
     datas = []
     db,cursor = mysql_connect('localhost','root','19960704','ebmis_db')
@@ -218,4 +258,5 @@ def sanPinYiBiao_fix():
 def category_fix():
     pass
 
+# prepare()
 # top20_sku_fix()
