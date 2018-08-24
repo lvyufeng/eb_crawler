@@ -67,6 +67,7 @@ class YouLeGouSkuParser(spider.Parser):
         item['storeName'] = re.compile(r"(?<=<a title=\").+?(?=\")").findall(content)
         # item['storeURL'] =
         item['companyName'] = item['factoryName']
+        item['categoryId'] = re.compile(r"(?<=rootCateId: ').+?(?=')").findall(content)
 
         for k, v in item.items():
             item[k] = v[0].strip() if v else ''
@@ -89,8 +90,8 @@ class YouLeGouSkuSaver(spider.Saver):
         """
         save the item of a url, you can rewrite this function, parameters and return refer to self.working()
         """
-
-        insert_sql = 'insert into data_201806(' + ','.join(item.keys()) + ') VALUES(' + ','.join(['%s' for key in item.keys()]) + ')'
+        db_name = 'data_' + datetime.datetime.now().strftime('%Y%m')
+        insert_sql = 'insert into '+ db_name +'(' + ','.join(item.keys()) + ') VALUES(' + ','.join(['%s' for key in item.keys()]) + ')'
         try:
             self.cursor.execute(insert_sql, tuple(str(item[key]) for key in item.keys()))
             self.db.commit()
@@ -113,3 +114,4 @@ class YouLeGouSkuProxieser(spider.Proxieser):
             proxies.append(i)
         # print(len(proxies))
         return 0,proxies
+

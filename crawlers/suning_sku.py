@@ -84,6 +84,7 @@ class SuNingSkuParser(spider.Parser):
             item['origin'] = re.compile(r"(?<=产地：).+?(?=<)").findall(content)
             item['category'] = re.compile(r"(?<=类别：).+?(?=<)").findall(content)
             item['category1'] = re.compile(r"(?<=categoryName1\":\").+?(?=\")").findall(content)
+            item['categoryId'] = re.compile(r"(?<=category1\":\").+?(?=\")").findall(content)
             item['category2'] = re.compile(r"(?<=categoryName2\":\").+?(?=\")").findall(content)
             item['category3'] = re.compile(r"(?<=categoryName3\":\").+?(?=\")").findall(content)
             item['brand'] = re.compile(r"(?<=品牌：).+?(?=</span>)").findall(content)
@@ -149,9 +150,10 @@ class SuNingSkuSaver(spider.Saver):
         save the item of a url, you can rewrite this function, parameters and return refer to self.working()
         """
         # print(type(item))
+        db_name = 'data_' + datetime.datetime.now().strftime('%Y%m')
 
         if 'product' in url:
-            insert_sql = 'insert into data_201806(' + ','.join(item.keys()) + ') VALUES(' + ','.join(
+            insert_sql = 'insert into ' + db_name + '(' + ','.join(item.keys()) + ') VALUES(' + ','.join(
                 ['%s' for key in item.keys()]) + ')'
             try:
                 self.cursor.execute(insert_sql, tuple(str(item[key]) for key in item.keys()))
@@ -163,7 +165,7 @@ class SuNingSkuSaver(spider.Saver):
             # pass
 
         else:
-            update_sql = "UPDATE data_201806 SET "
+            update_sql = "UPDATE "+ db_name +" SET "
             where_condition = " WHERE productActualID = '%s'" % (item['productActualID'])
             item.pop('productActualID')
             mid = ','.join([key + "=" + "'%s'" % (str(item[key])) for key in item.keys()])

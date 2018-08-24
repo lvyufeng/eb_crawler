@@ -15,39 +15,37 @@ def test_spider():
     """
     # initial config parser
     config = config_parser()
-    urls = get_urls(config)
     # print(urls[-3304])
     # urls = urls[-3500:-1]
-    key = config.getStr('spider_config', 'platform')
-    print(key)
-    if key == 'Tmall':
-        key = 'TaoBao'
+    keys = config.getStr('spider_config', 'platform').split(',')
+    print(keys)
+    for key in keys:
+        print('Start %d spider %s' %(keys.index(key)+1,key))
+        urls = get_urls(config,key)
 
-    # links = urls[key]
+        if key == 'Tmall':
+            key = 'TaoBao'
 
-    # initial fetcher / parser / saver
-    fetcher = createInstance('crawlers',key+'SkuFetcher',max_repeat=1, sleep_time=0)
-    # parser = None
-    # saver = None
-
-    parser = createInstance('crawlers',key+'SkuParser',max_deep=1)
-    saver = createInstance('crawlers',key+'SkuSaver',config)
-    if key == 'TaoBao':
-        proxieser = createInstance('crawlers',key+'SkuProxieser',sleep_time=1)
-    else:
-        proxieser = None
+        # initial fetcher / parser / saver
+        fetcher = createInstance('crawlers',key+'SkuFetcher',max_repeat=1, sleep_time=0)
+        parser = createInstance('crawlers',key+'SkuParser',max_deep=1)
+        saver = createInstance('crawlers',key+'SkuSaver',config)
+        if key == 'TaoBao':
+            proxieser = createInstance('crawlers',key+'SkuProxieser',sleep_time=1)
+        else:
+            proxieser = None
 
     # initial web_spider
-    web_spider = WebSpider(fetcher, parser, saver, proxieser, monitor_sleep_time=1)
+        web_spider = WebSpider(fetcher, parser, saver, proxieser, monitor_sleep_time=1)
 
     # add start url
-    web_spider.set_start_url(urls)
+        web_spider.set_start_url(urls)
 
     # start web_spider
-    web_spider.start_working(fetcher_num=config.getInt('spider_config', 'threads'))
+        web_spider.start_working(fetcher_num=config.getInt('spider_config', 'threads'))
 
     # wait for finished
-    web_spider.wait_for_finished()
+        web_spider.wait_for_finished()
 
     return
 

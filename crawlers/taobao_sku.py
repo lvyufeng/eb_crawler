@@ -6,6 +6,7 @@ import random
 from urllib import parse
 from items import SkuItem
 from fake_useragent import UserAgent
+import datetime
 
 class TaoBaoSkuFetcher(spider.Fetcher):
     """
@@ -70,6 +71,7 @@ class TaoBaoSkuParser(spider.Parser):
                 item['website'] = keys['Website']
                 item['productInnerId'] = keys['productInnerId']
                 item['productURL'] = url
+                item['categoryId'] = data['data']['item']['rootCategoryId'] if 'itemId' in data['data']['item'] else None
                 # 链接
                 item['productActualID'] = data['data']['item']['itemId'] if 'itemId' in data['data']['item'] else None
 
@@ -148,7 +150,9 @@ class TaoBaoSkuSaver(spider.Saver):
         save the item of a url, you can rewrite this function, parameters and return refer to self.working()
         """
 
-        insert_sql = 'insert into data_201806(' + ','.join(item.keys()) + ') VALUES(' + ','.join(['%s' for key in item.keys()]) + ')'
+        db_name = 'data_' + datetime.datetime.now().strftime('%Y%m')
+        insert_sql = 'insert into ' + db_name + '(' + ','.join(item.keys()) + ') VALUES(' + ','.join(
+            ['%s' for key in item.keys()]) + ')'
         try:
             self.cursor.execute(insert_sql, tuple(str(item[key]) for key in item.keys()))
             self.db.commit()

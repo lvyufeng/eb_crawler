@@ -70,6 +70,7 @@ class SkuItem(DictItem):
     # 类别2
     category3 = Field()
     # 类别3
+    categoryId = Field()
     goodCommentCount = Field()
     # 好评数量
     midCommentCount = Field()

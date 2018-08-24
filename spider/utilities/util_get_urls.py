@@ -4,13 +4,13 @@ import pymysql
 from urllib import parse
 import datetime
 
-def get_urls(config):
+def get_urls(config,website):
 
     db = pymysql.connect(config.getStr('mysql', 'host'), config.getStr('mysql', 'user'), config.getStr('mysql', 'passwd'), config.getStr('mysql', 'db'), use_unicode=True, charset="utf8")
 
     cursor = db.cursor()
 
-    sql = "SELECT * FROM taskinfo WHERE website = '%s'" % (config.getStr('spider_config', 'platform'))
+    sql = "SELECT * FROM taskinfo WHERE website = '%s'" % (website)
 
     try:
         # 执行SQL语句

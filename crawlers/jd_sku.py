@@ -70,6 +70,7 @@ class JingDongSkuParser(spider.Parser):
             item['website'] = [str(keys['Website'])]
             item['productInnerId'] = [str(keys['productInnerId'])]
             item['productURL'] = [url]
+            item['categoryId'] = cat
 
             item['productActualID'] = re.compile(r"(?<=skuid:).+?(?=,)").findall(content)
             item['productName'] = re.compile(r"(?<=sku-name\">\n).+?(?=<)").findall(content)
@@ -143,9 +144,11 @@ class JingDongSkuSaver(spider.Saver):
         save the item of a url, you can rewrite this function, parameters and return refer to self.working()
         """
         # print(type(item))
+        db_name = 'data_' + datetime.datetime.now().strftime('%Y%m')
 
         if 'item' in url:
-            insert_sql = 'insert into data_201806(' + ','.join(item.keys()) + ') VALUES(' + ','.join(['%s' for key in item.keys()]) + ')'
+            insert_sql = 'insert into ' + db_name + '(' + ','.join(item.keys()) + ') VALUES(' + ','.join(
+                ['%s' for key in item.keys()]) + ')'
             try:
                 self.cursor.execute(insert_sql, tuple(str(item[key]) for key in item.keys()))
                 self.db.commit()
@@ -156,7 +159,7 @@ class JingDongSkuSaver(spider.Saver):
             # pass
 
         else:
-            update_sql = "UPDATE data_201806 SET "
+            update_sql = "UPDATE "+ db_name +" SET "
             where_condition = " WHERE productActualID = '%s'" % (item['productActualID'])
             item.pop('productActualID')
             mid = ','.join([key + "=" + "'%s'" %(str(item[key]))for key in item.keys()])
