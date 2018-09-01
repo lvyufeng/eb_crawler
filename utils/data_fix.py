@@ -5,7 +5,7 @@ import decimal
 table_wait_fix = 'data_201804'
 store_base = 'store_baseinfo'
 product_base = 'product_baseinfo'
-
+three_class = 'threeclassificationtable'
 
 
 # basic util
@@ -53,6 +53,35 @@ def query_store_id(cursor,store_name,website):
         return None
     pass
 
+def count_city_ids(cursor,city):
+    sql = "SELECT productActualID,std_stdPrice,monthSaleCount,isValid FROM " + table_wait_fix + " WHERE std_city = %s AND (website = 'TaoBao' OR website = 'Tmall')"
+    try:
+        # 执行SQL语句
+        cursor.execute(sql,(city))
+        # 获取所有记录列表
+        results = cursor.fetchall()
+
+        return [list(i) for i in results]
+    except Exception as e:
+        print("Error: unable to fetch data",e)
+        return None
+    pass
+def get_city_count():
+    path = '2018年04月度报表批注.xlsx'
+    workbook = excel_read(path)
+    sheet = sheet_read(workbook, '附件4')
+    result = {}
+    for i in range(3, sheet.nrows):
+        if '板块' in sheet.cell_value(i,0) or '版块' in sheet.cell_value(i,0) or '总计' in sheet.cell_value(i,0):
+            pass
+        else:
+            result[str(sheet.cell_value(i,0)).strip('区').strip('县')] = sheet.cell_value(i,2)
+
+    return result
+    pass
+
+get_city_count()
+
 def query_product_id(cursor,store_id,product_name):
     sql = 'SELECT productActualID FROM ' + product_base + ' WHERE storeActualID = %s AND productName = %s'
     try:
@@ -79,8 +108,34 @@ def query_store_product_ids(cursor,store_id):
         return None
     pass
 
+def query_sanpinyibiao_product_ids(cursor,keyword):
+    sql = 'SELECT productActualID,std_stdPrice,monthSaleCount,isValid FROM ' + table_wait_fix + ' WHERE keyword = %s'
+    try:
+        # 执行SQL语句
+        cursor.execute(sql,keyword)
+        # 获取所有记录列表
+        results = cursor.fetchall()
+        return [list(i) for i in results]
+    except Exception as e:
+        # print("Error: unable to fetch data", e)
+        return None
+    pass
+
+def query_category_product_ids(cursor,keyword):
+    sql = 'SELECT productActualID,std_stdPrice,monthSaleCount,isValid FROM ' + table_wait_fix + ' WHERE keyword = %s'
+    try:
+        # 执行SQL语句
+        cursor.execute(sql,keyword)
+        # 获取所有记录列表
+        results = cursor.fetchall()
+        return [list(i) for i in results]
+    except Exception as e:
+        print("Error: unable to fetch data", e)
+        return []
+    pass
+
 def query_all_ids(platform,sheet_name):
-    path = '/Users/lvyufeng/PycharmProjects/eb_crawler/utils/2018年04月度报表批注.xlsx'
+    path = '2018年04月度报表批注.xlsx'
     db, cursor = mysql_connect('139.224.112.239', 'root', '1701sky', 'ebmis_db')
     workbook = excel_read(path)
     sheet = sheet_read(workbook, sheet_name)
@@ -110,6 +165,105 @@ def query_all_ids(platform,sheet_name):
     return datas
     pass
 
+def get_all_products(platform,sheet_name):
+    update_list,remove_list = [],[]
+    update,remove = compute_top20_store(platform,sheet_name)
+    for i in update:
+        if i[3] == 1:
+            update_list.append({
+                'productActualID':i[0],
+                'monthSaleCount':i[2],
+                'productPromPrice':i[1],
+                'std_stdPrice':i[1],
+                'isValid':0,
+            })
+    for i in remove:
+        if i[3] == 1:
+            remove_list.append({
+                'productActualID':i[0],
+            })
+
+    return update_list,remove_list
+
+def get_all_spyb_products():
+    update_list,remove_list = [],[]
+    update,remove = compute_sanpinyibiao()
+    for i in update:
+        if i[3] == 1:
+            update_list.append({
+                'productActualID':i[0],
+                'monthSaleCount':i[2],
+                'productPromPrice':i[1],
+                'std_stdPrice':i[1],
+                'isValid':0,
+            })
+    for i in remove:
+        if i[3] == 1:
+            remove_list.append({
+                'productActualID':i[0],
+            })
+
+    return update_list,remove_list
+
+def get_all_cat_products():
+    update_list, remove_list = [], []
+    update, remove = compute_category()
+    for i in update:
+        if i[3] == 1:
+            update_list.append({
+                'productActualID': i[0],
+                'monthSaleCount': i[2],
+                'productPromPrice': i[1],
+                'std_stdPrice': i[1],
+                'isValid': 0,
+            })
+    for i in remove:
+        if i[3] == 1:
+            remove_list.append({
+                'productActualID': i[0],
+            })
+
+    return update_list, remove_list
+
+    pass
+def get_city_info(cursor):
+    sql = "SELECT productActualID,loc_city,singleKeyword FROM " + product_base + " WHERE loc_province = '%s'" %('重庆')
+    try:
+        # 执行SQL语句
+        cursor.execute(sql)
+        # 获取所有记录列表
+        results = cursor.fetchall()
+        return [list(i) for i in results]
+    except Exception as e:
+        # print("Error: unable to fetch data", e)
+        return None
+    pass
+
+def get_sanpinyibiao(cursor):
+    sql = "SELECT 三级 FROM " + three_class + " WHERE loc_famous = 1"
+    try:
+        # 执行SQL语句
+        cursor.execute(sql)
+        # 获取所有记录列表
+        results = cursor.fetchall()
+        return [list(i) for i in results]
+    except Exception as e:
+        # print("Error: unable to fetch data", e)
+        return None
+    pass
+
+def get_cat_3(cursor,cat_1):
+    sql = "SELECT 三级 FROM " + three_class + " WHERE 一级 = '%s'" %(cat_1)
+    try:
+        # 执行SQL语句
+        cursor.execute(sql)
+        # 获取所有记录列表
+        results = cursor.fetchall()
+        return [i[0] for i in results]
+    except Exception as e:
+        # print("Error: unable to fetch data", e)
+        return None
+    pass
 # query_util test
 def query_util_test():
     db,cursor = mysql_connect('139.224.112.239','root','1701sky','ebmis_db')
@@ -139,10 +293,28 @@ def update_single_product(db,cursor,data):
         db.rollback()
     pass
 
+# delete util
+def remove_single_product(db,cursor,data):
+    db.ping(reconnect=True)
+    # SQL 删除语句
+    sql = "DELETE FROM " + table_wait_fix + " WHERE productActualID = '%s'" % (data['productActualID'])
+    try:
+        # 执行SQL语句
+        cursor.execute(sql)
+        # 提交修改
+        db.commit()
+    except Exception as e:
+        # 发生错误时回滚
+        print(e)
+        db.rollback()
+
+    # 关闭连接
+    db.close()
+    pass
 # compute util
 def compute_store_price(store_id,actual_total):
     db, cursor = mysql_connect('localhost', 'root', '19960704', 'ebmis_db')
-    product_ids = query_store_product_ids(cursor,store_id)
+    product_ids = list(query_store_product_ids(cursor,store_id))
     result = []
     remove = []
     product_valid_totals = [i[1]*decimal.Decimal(i[2]) if i[3]==1 else 0 for i in product_ids]
@@ -179,11 +351,12 @@ def compute_store_price(store_id,actual_total):
 
 
     # return actual_total,total
-    # print(len(product_ids))
+    print(actual_total,total)
+    db.close()
     return result,remove
     pass
 def compute_top20_store(platform,sheet_name):
-    path = '/Users/lvyufeng/PycharmProjects/eb_crawler/utils/2018年04月度报表批注.xlsx'
+    path = '2018年04月度报表批注.xlsx'
     db, cursor = mysql_connect('139.224.112.239', 'root', '1701sky', 'ebmis_db')
     workbook = excel_read(path)
     sheet = sheet_read(workbook, sheet_name)
@@ -200,10 +373,132 @@ def compute_top20_store(platform,sheet_name):
     # print(datas)
     return update_datas,remove_datas
 
+def compute_sanpinyibiao_price(keyword,actual_total):
+    db, cursor = mysql_connect('localhost', 'root', '19960704', 'ebmis_db')
+    product_ids = list(query_sanpinyibiao_product_ids(cursor,keyword))
+    if product_ids == []:
+        return [],[]
+    result = []
+    remove = []
+    product_valid_totals = [i[1]*decimal.Decimal(i[2]) if i[3]==1 else 0 for i in product_ids]
+    product_invalid_totals = [i[1]*decimal.Decimal(i[2]) if i[3]==0 else 0 for i in product_ids]
+    product_prices = [i[1] for i in product_ids]
+    # print(product_ids)
+    valid_total = sum(product_valid_totals)
+    invalid_total = sum(product_invalid_totals)
+    total_price = sum(product_prices)
 
-# compute_top20_store('Tmall','2.1')
-# compute_top20_store('TaoBao','2.2')
+    sub = actual_total - invalid_total
+    nums = [int(i/valid_total*sub/product_prices[product_valid_totals.index(i)]) if product_ids[product_valid_totals.index(i)][3]==1 else 0 for i in product_valid_totals] if valid_total != decimal.Decimal(0) else [int(sub/total_price) for i in product_prices]
 
+    for index,item in enumerate(product_ids):
+        if item[3] == 0:
+            result.append(item)
+        elif nums[index] != 0:
+            item[2] = nums[index]
+            result.append(item)
+        else:
+            remove.append(item)
+    # print(result)
+    # return product_ids
+    total = sum([i[1]*decimal.Decimal(i[2]) for i in result])
+    if product_ids[product_prices.index(min(product_prices))] in result:
+        product_ids[product_prices.index(min(product_prices))][2] += int((actual_total - total) / min(product_prices))
+    else:
+        item = product_ids[product_prices.index(min(product_prices))]
+        remove.remove(item)
+        item[2] = int((actual_total - total) / min(product_prices))
+        result.append(item)
+
+    # print(min(product_prices))
+    total = sum([i[1] * decimal.Decimal(i[2]) for i in result])
+
+
+    # return actual_total,total
+    print(actual_total,total)
+    db.close()
+    return result,remove
+    pass
+
+def compute_sanpinyibiao():
+    path = '2018年04月度报表批注.xlsx'
+    # db, cursor = mysql_connect('139.224.112.239', 'root', '1701sky', 'ebmis_db')
+    workbook = excel_read(path)
+    sheet = sheet_read(workbook, '附件5')
+    update_datas = []
+    remove_datas = []
+    for i in range(2,22):
+        # print(sheet.cell_value(i,6))
+        result,remove = compute_sanpinyibiao_price(sheet.cell_value(i,1),decimal.Decimal(sheet.cell_value(i,2) * 10000))
+        update_datas.extend(result)
+        remove_datas.extend(remove)
+    return update_datas,remove_datas
+
+def compute_category_price(keywords,actual_total):
+    db, cursor = mysql_connect('localhost', 'root', '19960704', 'ebmis_db')
+    product_ids = []
+    for i in keywords:
+        product_ids.extend(query_category_product_ids(cursor,i))
+    if product_ids == []:
+        return [],[]
+    result = []
+    remove = []
+    product_valid_totals = [i[1]*decimal.Decimal(i[2]) if i[3]==1 else 0 for i in product_ids]
+    product_invalid_totals = [i[1]*decimal.Decimal(i[2]) if i[3]==0 else 0 for i in product_ids]
+    product_prices = [i[1] for i in product_ids]
+    # print(product_ids)
+    valid_total = sum(product_valid_totals)
+    invalid_total = sum(product_invalid_totals)
+    total_price = sum(product_prices)
+
+    sub = actual_total - invalid_total
+    nums = [int(i/valid_total*sub/product_prices[product_valid_totals.index(i)]) if product_ids[product_valid_totals.index(i)][3]==1 else 0 for i in product_valid_totals] if valid_total != decimal.Decimal(0) else [int(sub/total_price) for i in product_prices]
+
+    for index,item in enumerate(product_ids):
+        if item[3] == 0:
+            result.append(item)
+        elif nums[index] != 0:
+            item[2] = nums[index]
+            result.append(item)
+        else:
+            remove.append(item)
+    # print(result)
+    # return product_ids
+    total = sum([i[1]*decimal.Decimal(i[2]) for i in result])
+    if product_ids[product_prices.index(min(product_prices))] in result:
+        product_ids[product_prices.index(min(product_prices))][2] += int((actual_total - total) / min(product_prices))
+    else:
+        item = product_ids[product_prices.index(min(product_prices))]
+        remove.remove(item)
+        item[2] = int((actual_total - total) / min(product_prices))
+        result.append(item)
+
+    # print(min(product_prices))
+    total = sum([i[1] * decimal.Decimal(i[2]) for i in result])
+
+
+    # return actual_total,total
+    print(actual_total,total)
+    db.close()
+    return result,remove
+    pass
+
+def compute_category():
+    path = '2018年04月度报表批注.xlsx'
+    db, cursor = mysql_connect('139.224.112.239', 'root', '1701sky', 'ebmis_db')
+    workbook = excel_read(path)
+    sheet = sheet_read(workbook, '附件3')
+    update_datas = []
+    remove_datas = []
+    for i in range(2,35):
+        # print(sheet.cell_value(i,3),decimal.Decimal(sheet.cell_value(i,4) * 10000))
+        keys = get_cat_3(cursor,sheet.cell_value(i,3))
+        # print(keys)
+        result,remove = compute_category_price(keys,decimal.Decimal(sheet.cell_value(i,4) * 10000))
+        update_datas.extend(result)
+        remove_datas.extend(remove)
+    return update_datas,remove_datas
+# compute_sanpinyibiao()
 # for different sheet fix
 def prepare():
     db, cursor = mysql_connect('localhost', 'root', '19960704', 'ebmis_db')
@@ -218,6 +513,8 @@ def prepare():
 
     except Exception as e:
         print("Error: unable to fetch data", e)
+
+    print('start update std_price')
     for i in results:
         if i[3] == None and i[2] == None and i[1] != None:
             update_single_product(db,cursor,{
@@ -235,6 +532,21 @@ def prepare():
             pass
     pass
 
+def fill_city():
+    db, cursor = mysql_connect('139.224.112.239', 'root', '1701sky', 'ebmis_db')
+    result = get_city_info(cursor)
+    db.close()
+
+    local,cursor = mysql_connect('localhost','root','19960704','ebmis_db')
+    for i in result:
+        update_single_product(local,cursor, {
+            'productActualID': i[0],
+            'std_city': i[1],
+            'keyword':i[2]
+        })
+    pass
+
+# fill_city()
 
 def top20_sku_fix():
     datas = []
@@ -250,13 +562,53 @@ def top20_sku_fix():
     pass
 
 def top20_store_fix():
+    db, cursor = mysql_connect('localhost', 'root', '19960704', 'ebmis_db')
+    platform = {
+        'Tmall':'2.1',
+        'TaoBao':'2.2'
+    }
+    remove_list,update_list = [],[]
+    for k,v in platform.items():
+        # print(k,v)
+        update_list,remove_list = get_all_products(k,v)
+
+        for i in update_list:
+            update_single_product(db, cursor, i)
+        for j in remove_list:
+            remove_single_product(db, cursor, j)
+
+    pass
+
+def city_fix():
+    citys = get_city_count()
+    db, cursor = mysql_connect('localhost', 'root', '19960704', 'ebmis_db')
+    for k,v in citys.items():
+        result = count_city_ids(cursor,k)
+        print(k,v,len(result))
     pass
 
 def sanPinYiBiao_fix():
+    update_list, remove_list = get_all_spyb_products()
+    db, cursor = mysql_connect('localhost', 'root', '19960704', 'ebmis_db')
+    for i in update_list:
+        update_single_product(db, cursor, i)
+    for j in remove_list:
+        remove_single_product(db, cursor, j)
     pass
 
 def category_fix():
+    compute_category()
+    update_list, remove_list = get_all_cat_products()
+    db, cursor = mysql_connect('localhost', 'root', '19960704', 'ebmis_db')
+    for i in update_list:
+        update_single_product(db, cursor, i)
+    for j in remove_list:
+        remove_single_product(db, cursor, j)
     pass
 
 # prepare()
 # top20_sku_fix()
+# top20_store_fix()
+# city_fix()
+# sanPinYiBiao_fix()
+category_fix()
