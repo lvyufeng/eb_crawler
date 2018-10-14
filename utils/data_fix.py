@@ -2,7 +2,8 @@ import pymysql
 import xlrd
 import decimal
 
-table_wait_fix = 'data_201804'
+# table_wait_fix = 'data_201804'
+table_wait_fix = 'productmonitor'
 store_base = 'store_baseinfo'
 product_base = 'product_baseinfo'
 three_class = 'threeclassificationtable'
@@ -96,7 +97,7 @@ def query_product_id(cursor,store_id,product_name):
     pass
 
 def query_store_product_ids(cursor,store_id):
-    sql = 'SELECT productActualID,std_stdPrice,monthSaleCount,isValid FROM ' + table_wait_fix + ' WHERE storeActualID = %s'
+    sql = 'SELECT productActualID,std_price,monthSaleCount,isValid_statistics FROM ' + product_base + ' WHERE storeActualID = %s'
     try:
         # 执行SQL语句
         cursor.execute(sql,store_id)
@@ -157,8 +158,8 @@ def query_all_ids(platform,sheet_name):
             'productActualID':product_id,
             'monthSaleCount':int(sheet.cell_value(i,3)),
             'productPromPrice':sheet.cell_value(i,4),
-            'std_stdPrice':sheet.cell_value(i,4),
-            'isValid':0,
+            'std_price':sheet.cell_value(i,4),
+            'isValid_statistics':0,
         })
     db.close()
 
@@ -279,7 +280,7 @@ def query_util_test():
 def update_single_product(db,cursor,data):
     # SQL 更新语句
     update_sql = "UPDATE " + table_wait_fix + " SET "
-    where_condition = " WHERE productActualID = '%s'" % (data['productActualID'])
+    where_condition = " WHERE year=2018 and monthOfYear = 4 and productActualID = '%s'" % (data['productActualID'])
     data.pop('productActualID')
     mid = ','.join([key + "=" + "'%s'" % (str(data[key])) for key in data.keys()])
     try:
@@ -551,6 +552,7 @@ def fill_city():
 def top20_sku_fix():
     datas = []
     db,cursor = mysql_connect('localhost','root','19960704','ebmis_db')
+    # db, cursor = mysql_connect('139.224.112.239', 'root', '1701sky', 'ebmis_db')
     datas.extend(query_all_ids('Tmall', '3.1'))
     datas.extend(query_all_ids('TaoBao', '3.2'))
 
@@ -562,7 +564,7 @@ def top20_sku_fix():
     pass
 
 def top20_store_fix():
-    db, cursor = mysql_connect('localhost', 'root', '19960704', 'ebmis_db')
+    db, cursor = mysql_connect('139.224.112.239', 'root', '1701sky', 'ebmis_db')
     platform = {
         'Tmall':'2.1',
         'TaoBao':'2.2'
@@ -608,7 +610,7 @@ def category_fix():
 
 # prepare()
 # top20_sku_fix()
-# top20_store_fix()
+top20_store_fix()
 # city_fix()
 # sanPinYiBiao_fix()
-category_fix()
+# category_fix()
