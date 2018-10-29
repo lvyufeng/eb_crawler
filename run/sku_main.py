@@ -1,13 +1,7 @@
 import logging
 from spider import config_parser,WebSpider,get_urls
 import random
-
-
-def createInstance(module_name, class_name, *args, **kwargs):
-    module_meta = __import__(module_name, globals(), locals(), [class_name])
-    class_meta = getattr(module_meta, class_name)
-    obj = class_meta(*args, **kwargs)
-    return obj
+from utils import createInstance
 
 def test_spider():
     """
