@@ -22,14 +22,14 @@ class TaoBaoSkuFetcher(spider.Fetcher):
             time.sleep(random.choice((1,0.5)))
         id = url.split('=')[-1]
         url = 'http://h5api.m.taobao.com/h5/mtop.taobao.detail.getdetail/6.0/?data=' + parse.quote('{"exParams":"{\"id\":\"' + id + '\"}","itemNumId":"' + id + '"}')
-        ua = UserAgent()
-        headers = {"User-Agent":ua.random}
+        # ua = UserAgent()
+        # headers = {"User-Agent":ua.random}
         try:
             proxies = {
                 "http": proxies,
                 "https": proxies,
             }
-            response = requests.get(url, proxies=proxies,timeout = 2,headers=headers)
+            response = requests.get(url, proxies=proxies,timeout = 2)#,headers=headers)
 
             if response.status_code == 200:
                 data = json.loads(response.text)

@@ -24,11 +24,11 @@ class YouLeGouSkuFetcher(spider.Fetcher):
                 "http": proxies,
                 "https": proxies,
         }
-        ua = UserAgent()
-        headers = {"User-Agent": ua.random}
+        # ua = UserAgent()
+        # headers = {"User-Agent": ua.random}
 
         try:
-            main_response = requests.get(url, proxies=proxies, timeout= 3,headers = headers)
+            main_response = requests.get(url, proxies=proxies, timeout= 3)#,headers = headers)
             if main_response.status_code != 200:
                 return 0, False, None
             # print(main_response.text)

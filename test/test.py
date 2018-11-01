@@ -6,11 +6,11 @@ https://c0.3.cn/stock?skuId=11564571796&area=1_72_4137_0&venderId=186465&cat=122
 # url='https://item.m.jd.com/product/11128347901.html'
 """
 
-
+from fake_useragent import UserAgent
 import re
 from bs4 import  BeautifulSoup
 import requests
-url = 'http://product.suning.com/136223634.html'
+# url = 'http://product.suning.com/136223634.html'
 # url='http://item.jd.com/10000031268.html'
 # url = 'https://chat1.jd.com/api/checkChat?pid=11564571796'
 
@@ -25,16 +25,24 @@ url = 'http://product.suning.com/136223634.html'
 # jd_data=requests.get(url,headers=headers)
 # print(jd_data.content)
 # p1 = r"itemover"
-p1 = r"(?<=\"fArea\">)([\s\S]*?)(?=</span>)"
-test = '''
-<div class="fArea">
-	        					<span>
-	        					辽宁省营口市</span>至
-	        				</div>'''
-pattern1 = re.compile(p1)#我们在编译这段正则表达式
-matcher1 = pattern1.findall(test)#在源文本中搜索符合正则表达式的部分
-print(matcher1)
+# p1 = r"(?<=\"fArea\">)([\s\S]*?)(?=</span>)"
+# test = '''
+# <div class="fArea">
+# 	        					<span>
+# 	        					辽宁省营口市</span>至
+# 	        				</div>'''
+# pattern1 = re.compile(p1)#我们在编译这段正则表达式
+# matcher1 = pattern1.findall(test)#在源文本中搜索符合正则表达式的部分
+# print(matcher1)
 #
+
+ua = UserAgent(verify_ssl=False)
+
+
+ua.update()
+print(ua.random)
+
+
 # with open('test.html','w',encoding='gbk') as f:
 #     f.write(jd_data.text)
 # f.close()
