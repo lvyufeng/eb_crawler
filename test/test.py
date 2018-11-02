@@ -35,12 +35,15 @@ import requests
 # matcher1 = pattern1.findall(test)#在源文本中搜索符合正则表达式的部分
 # print(matcher1)
 #
+#
+# ua = UserAgent(verify_ssl=False)
+#
+#
+# ua.update()
+for i in range(2,5):
+    print(i)
 
-ua = UserAgent(verify_ssl=False)
-
-
-ua.update()
-print(ua.random)
+# print(ua.random)
 
 
 # with open('test.html','w',encoding='gbk') as f:
