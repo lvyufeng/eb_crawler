@@ -6,6 +6,7 @@ import time
 import datetime
 from items import SkuItem
 from urllib import parse
+import pymongo
 
 class JingDongSkuFetcher(spider.Fetcher):
     """
@@ -67,8 +68,8 @@ class JingDongSkuParser(spider.Parser):
             url_list.append((comment_url, keys, priority-1))
 
             # 解析数据，使用正则表达式解析，返回值为list
-            item['website'] = [str(keys['Website'])]
-            item['productInnerId'] = [str(keys['productInnerId'])]
+            item['website'] = [str(keys['website'])]
+            item['keyword'] = [str(keys['keyword'])]
             item['productURL'] = [url]
             item['categoryId'] = cat
 
@@ -135,7 +136,9 @@ class JingDongSkuSaver(spider.Saver):
 
     def __init__(self, config):
         super(JingDongSkuSaver,self).__init__(config)
-        self.count = 0
+        client = pymongo.MongoClient(self.cf.getStr('mongodb', 'db_host'), self.cf.getInt('mongodb', 'db_port'))
+        db = client['test']
+        self.collection = db['data_' + datetime.datetime.now().strftime('%Y%m')]
         return
 
 
@@ -144,36 +147,9 @@ class JingDongSkuSaver(spider.Saver):
         save the item of a url, you can rewrite this function, parameters and return refer to self.working()
         """
         # print(type(item))
-        db_name = 'data_' + datetime.datetime.now().strftime('%Y%m')
+        item.update(keys)
 
-        if 'item' in url:
-            insert_sql = 'insert into ' + db_name + '(' + ','.join(item.keys()) + ') VALUES(' + ','.join(
-                ['%s' for key in item.keys()]) + ')'
-            try:
-                self.cursor.execute(insert_sql, tuple(str(item[key]) for key in item.keys()))
-                self.db.commit()
-
-                # self.count = self.count + 1
-            except Exception as e:
-                return -1
-            # pass
-
-        else:
-            update_sql = "UPDATE "+ db_name +" SET "
-            where_condition = " WHERE productActualID = '%s'" % (item['productActualID'])
-            item.pop('productActualID')
-            mid = ','.join([key + "=" + "'%s'" %(str(item[key]))for key in item.keys()])
-            try:
-                self.cursor.execute(update_sql + mid + where_condition)
-                self.db.commit()
-
-                # self.count = self.count + 1
-            except Exception as e:
-                return -1
-
-        # if self.count % 1000 == 0:
-
-        # self.db.update({'productActualID': item["productActualID"]}, {'$set': item},True)
+        self.collection.update({'productActualID': item["productActualID"]}, {'$set': item},True)
         return 1
 
 class JingDongSkuProxieser(spider.Proxieser):

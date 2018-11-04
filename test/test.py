@@ -40,9 +40,8 @@ import requests
 #
 #
 # ua.update()
-for i in range(2,5):
-    print(i)
-
+import pymongo
+# client = pymongfo.
 # print(ua.random)
 
 

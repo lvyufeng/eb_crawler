@@ -9,7 +9,7 @@ class config_parser():
 
     # 获取配置数据
     def getStr(self,section,option):
-        cf = configparser.ConfigParser()
+        cf = configparser.RawConfigParser()
         try:
             cf.read(self.__path)
             ret = cf.get(section,option)
@@ -19,7 +19,7 @@ class config_parser():
             return ''
 
     def getInt(self,section,option):
-        cf = configparser.ConfigParser()
+        cf = configparser.RawConfigParser()
         try:
             cf.read(self.__path)
             ret = cf.get(section,option)

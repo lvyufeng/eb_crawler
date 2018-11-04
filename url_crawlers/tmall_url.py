@@ -1,3 +1,5 @@
+#coding:utf-8
+
 import spider
 import requests
 import json
@@ -7,7 +9,7 @@ from urllib import parse
 from items import SkuItem
 import datetime
 import pymongo
-
+import re
 class TmallUrlFetcher(spider.Fetcher):
     """
     fetcher module, only rewrite url_fetch()
@@ -21,11 +23,12 @@ class TmallUrlFetcher(spider.Fetcher):
         else:
             time.sleep(random.choice((1,0.5)))
         try:
+
             proxies = {
                 "http": proxies,
                 "https": proxies,
             }
-            response = requests.get(url, proxies=proxies,timeout = 2)
+            response = requests.get(url, proxies=proxies,timeout = 5)
 
             if response.status_code == 200:
 
@@ -49,12 +52,44 @@ class TmallUrlParser(spider.Parser):
         url_list = []
         sku_list = []
         # item = SkuItem()
+        list = re.compile(r"(?<=data-id=\").+?(?=\")").findall(content)
+
+        next = re.compile(r"(?<=\"ui-page-next\" href=\").+?(?=\")").findall(content)
+        for i in next:
+            if 's=' in i and 's=60' not in i:
+                url_list.append(('https://list.tmall.com/search_product.htm' + i, keys, priority + 1))
+        for i in list:
+            sku_list.append({
+                '_id':'t'+str(i)
+            })
+
+        # <a class="ui-page-next" href="?spm=a220m.1000858.0.0.9a0a6906s7kx1d&amp;s=60&amp;q=%CE%F7%E8%D6&amp;sort=s&amp;style=g&amp;smAreaId=500100&amp;type=pc#J_Filter" atpanel="2,pagedn,,,,20,footer," data-spm-anchor-id="a220m.1000858.0.0">下一页&gt;&gt;</a>
+
+
+
+
+        return 1, url_list, sku_list
+
+
+        # print(save_list)
+
+        # return 1, url_list, [item]
+
+class TmallUrlParser_Old(spider.Parser):
+    """
+    parser module, only rewrite htm_parse()
+    """
+    def htm_parse(self, priority: int, url: str, keys: dict, deep: int, content: object):
+        response_text = content.strip()
+        url_list = []
+        sku_list = []
+        # item = SkuItem()
         try:
             data = json.loads(response_text)
             total_page = int(data['total_page'])
             for i in data['item']:
                 sku_list.append({
-                    '_id':'t'+i['item_id']
+                    '_id':'t'+str(i['item_id'])
                 })
             # pass
 
@@ -63,12 +98,8 @@ class TmallUrlParser(spider.Parser):
                     url_list.append((url.replace('page_no=1','page_no='+str(i)), keys, priority + 1))
 
             return 1, url_list, sku_list
-        except:
+        except Exception as e:
             return -1,[url],[]
-
-        # print(save_list)
-
-        # return 1, url_list, [item]
 
 class TmallUrlSaver(spider.Saver):
 
@@ -97,7 +128,7 @@ class TmallUrlSaver(spider.Saver):
 
         return 1
 
-class TaoBaoSkuProxieser(spider.Proxieser):
+class TmallUrlProxieser(spider.Proxieser):
 
     def proxies_get(self):
         url = 'http://127.0.0.1:5010/get_all/?name=TaoBao_proxy'

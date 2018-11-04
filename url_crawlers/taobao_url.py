@@ -25,7 +25,7 @@ class TaoBaoUrlFetcher(spider.Fetcher):
                 "http": proxies,
                 "https": proxies,
             }
-            response = requests.get(url, proxies=proxies,timeout = 2)
+            response = requests.get(url, proxies=proxies,timeout = 5)
 
             if response.status_code == 200:
 
@@ -97,7 +97,7 @@ class TaoBaoUrlSaver(spider.Saver):
 
         return 1
 
-class TaoBaoSkuProxieser(spider.Proxieser):
+class TaoBaoUrlProxieser(spider.Proxieser):
 
     def proxies_get(self):
         url = 'http://127.0.0.1:5010/get_all/?name=TaoBao_proxy'

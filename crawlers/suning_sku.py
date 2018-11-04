@@ -6,6 +6,7 @@ import random
 import re
 import datetime
 from items import SkuItem
+import pymongo
 
 class SuNingSkuFetcher(spider.Fetcher):
     """
@@ -54,11 +55,12 @@ class SuNingSkuParser(spider.Parser):
         url_list = []
         #
         if 'product' in url:
-            if re.compile(r'其它类似商品').findall(content) or re.compile(r'对不起，您浏览的商品暂时无法显示').findall(content) or re.compile(r'苏宁易购电子书').findall(content):
+            # re.compile(r'其它类似商品').findall(content) or
+            if re.compile(r'对不起，您浏览的商品暂时无法显示').findall(content) or re.compile(r'苏宁易购电子书').findall(content):
                 return -1, [], []
 
-            if len(url.split('/')) == 4:
-                return -1, [], []
+            # if len(url.split('/')) == 4:
+            #     return -1, [], []
 
 
             item['productActualID'] = re.compile(r"(?<=ninePartNumber\":\").+?(?=\")").findall(content)
@@ -75,8 +77,8 @@ class SuNingSkuParser(spider.Parser):
             else:
                 return -1, [], []
 
-            item['website'] = [str(keys['Website'])]
-            item['productInnerId'] = [str(keys['productInnerId'])]
+            item['website'] = [str(keys['website'])]
+            item['keyword'] = [keys['keyword']]
             item['productURL'] = [url]
 
             item['productName'] = re.compile(r"(?<=\"itemDisplayName\":\").+?(?=\")").findall(content)
@@ -142,7 +144,9 @@ class SuNingSkuSaver(spider.Saver):
 
     def __init__(self, config):
         super(SuNingSkuSaver,self).__init__(config)
-        self.count = 0
+        client = pymongo.MongoClient(self.cf.getStr('mongodb', 'db_host'), self.cf.getInt('mongodb', 'db_port'))
+        db = client['test']
+        self.collection = db['data_' + datetime.datetime.now().strftime('%Y%m')]
         return
 
     def item_save(self, url: str, keys: dict, item: (list, tuple)):
@@ -150,34 +154,11 @@ class SuNingSkuSaver(spider.Saver):
         save the item of a url, you can rewrite this function, parameters and return refer to self.working()
         """
         # print(type(item))
-        db_name = 'data_' + datetime.datetime.now().strftime('%Y%m')
+        item.update(keys)
 
-        if 'product' in url:
-            insert_sql = 'insert into ' + db_name + '(' + ','.join(item.keys()) + ') VALUES(' + ','.join(
-                ['%s' for key in item.keys()]) + ')'
-            try:
-                self.cursor.execute(insert_sql, tuple(str(item[key]) for key in item.keys()))
-                self.db.commit()
-
-                # self.count = self.count + 1
-            except Exception as e:
-                return -1
-            # pass
-
-        else:
-            update_sql = "UPDATE "+ db_name +" SET "
-            where_condition = " WHERE productActualID = '%s'" % (item['productActualID'])
-            item.pop('productActualID')
-            mid = ','.join([key + "=" + "'%s'" % (str(item[key])) for key in item.keys()])
-            try:
-                self.cursor.execute(update_sql + mid + where_condition)
-                self.db.commit()
-
-                # self.count = self.count + 1
-            except Exception as e:
-                return -1
-        # if self.count % 1000 == 0:
+        self.collection.update({'productActualID': item["productActualID"]}, {'$set': item}, True)
         return 1
+
 
 class SuNingSkuProxieser(spider.Proxieser):
 

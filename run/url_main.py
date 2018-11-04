@@ -9,22 +9,30 @@ def test_spider():
     """
     # key = 'TaoBao'
     # key = 'JingDong'
-    keys = ['YouLeGou','SuNing','TaoBao','Tmall','JingDong']
+    # keys = ['YouLeGou','SuNing','Tmall','TaoBao','JingDong']
+    config = config_parser('./../conf.ini')
+    keys = ['SuNing']
     web_spiders = []
     for key in keys:
-
+        need_proxy = config.getStr('need_proxy', key)
         # initial fetcher / parser / saver
         fetcher = createInstance('url_crawlers', key + 'UrlFetcher', max_repeat=2, sleep_time=0)
         parser = createInstance('url_crawlers', key + 'UrlParser',max_deep=1)
         saver = createInstance('url_crawlers', key + 'UrlSaver')
-        # proxieser = createInstance('crawlers',key+'SkuProxieser',sleep_time=1)
+
+        if need_proxy == '1':
+            proxieser = createInstance('url_crawlers', key + 'UrlProxieser', sleep_time=1)
+        else:
+            proxieser = None
+
+        # proxieser = None
 
         # initial web_spider
-        web_spider = WebSpider(key,fetcher,parser,saver, monitor_sleep_time=1)
+        web_spider = WebSpider(key,fetcher,parser,saver,proxieser, monitor_sleep_time=1)
 
 
         # initial config parser
-        config = config_parser('./../conf.ini')
+        # config = config_parser('./../conf.ini')
         # print(urls[-3304])
         # urls = urls[-3500:-1]
 

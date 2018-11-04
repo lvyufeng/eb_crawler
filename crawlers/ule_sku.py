@@ -7,6 +7,7 @@ import datetime
 from items import SkuItem
 from urllib import parse
 from fake_useragent import UserAgent
+import pymongo
 
 class YouLeGouSkuFetcher(spider.Fetcher):
     """
@@ -49,8 +50,8 @@ class YouLeGouSkuParser(spider.Parser):
         #
         item = SkuItem()
 
-        item['website'] = [str(keys['Website'])]
-        item['productInnerId'] = [str(keys['productInnerId'])]
+        item['website'] = [str(keys['website'])]
+        item['keyword'] = [keys['keyword']]
         item['productURL'] = [str(url)]
 
         item['productActualID'] = re.compile(r"(?<=listId = \').+?(?=\')").findall(content)
@@ -76,31 +77,27 @@ class YouLeGouSkuParser(spider.Parser):
 
         if item['productActualID']:
             return 1, [], [item]
+        elif deep < 5:
+            return 0, [(url,keys,priority)], []
         else:
             return -1, [], []
-
 class YouLeGouSkuSaver(spider.Saver):
 
     def __init__(self, config):
-        super(YouLeGouSkuSaver,self).__init__(config)
+        super(YouLeGouSkuSaver, self).__init__(config)
+        client = pymongo.MongoClient(self.cf.getStr('mongodb', 'db_host'), self.cf.getInt('mongodb', 'db_port'))
+        db = client['test']
+        self.collection = db['data_' + datetime.datetime.now().strftime('%Y%m')]
         return
-
 
     def item_save(self, url: str, keys: dict, item: (list, tuple)):
         """
         save the item of a url, you can rewrite this function, parameters and return refer to self.working()
         """
-        db_name = 'data_' + datetime.datetime.now().strftime('%Y%m')
-        insert_sql = 'insert into '+ db_name +'(' + ','.join(item.keys()) + ') VALUES(' + ','.join(['%s' for key in item.keys()]) + ')'
-        try:
-            self.cursor.execute(insert_sql, tuple(str(item[key]) for key in item.keys()))
-            self.db.commit()
-        except:
-            return -1
+        # print(type(item))
+        item.update(keys)
 
-        # if self.count % 1000 == 0:
-        #     self.db.commit()
-
+        self.collection.update({'productActualID': item["productActualID"]}, {'$set': item}, True)
         return 1
 
 class YouLeGouSkuProxieser(spider.Proxieser):

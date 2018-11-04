@@ -54,7 +54,7 @@ class SuNingUrlParser(spider.Parser):
             total_page = int(int(data['goodsCount'])/20)
             for i in data['goods']:
                 sku_list.append({
-                    '_id':'s'+i['catentryId']
+                    '_id':'s'+ i['salesCode'] + '/' +i['catentryId']
                 })
             pass
 
@@ -98,10 +98,10 @@ class SuNingUrlSaver(spider.Saver):
 
         return 1
 
-class SuNingSkuProxieser(spider.Proxieser):
+class SuNingUrlProxieser(spider.Proxieser):
 
     def proxies_get(self):
-        url = 'http://127.0.0.1:5010/get_all/?name=JingDong_proxy'
+        url = 'http://127.0.0.1:5010/get_all/?name=SuNing_proxy'
         wb_data = requests.get(url)
         # print(wb_data.content)
         proxies = []

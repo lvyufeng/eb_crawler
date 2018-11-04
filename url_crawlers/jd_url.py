@@ -98,7 +98,7 @@ class JingDongUrlSaver(spider.Saver):
 
         return 1
 
-class JingDongSkuProxieser(spider.Proxieser):
+class JingDongUrlProxieser(spider.Proxieser):
 
     def proxies_get(self):
         url = 'http://127.0.0.1:5010/get_all/?name=JingDong_proxy'

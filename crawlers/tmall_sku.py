@@ -8,7 +8,7 @@ from items import SkuItem
 import datetime
 import pymongo
 
-class TaoBaoSkuFetcher(spider.Fetcher):
+class TmallSkuFetcher(spider.Fetcher):
     """
     fetcher module, only rewrite url_fetch()
     """
@@ -50,7 +50,7 @@ class TaoBaoSkuFetcher(spider.Fetcher):
             return 0, False, None
 
 
-class TaoBaoSkuParser(spider.Parser):
+class TmallSkuParser(spider.Parser):
     """
     parser module, only rewrite htm_parse()
     """
@@ -137,10 +137,10 @@ class TaoBaoSkuParser(spider.Parser):
 
         return 1, url_list, [item]
 
-class TaoBaoSkuSaver(spider.Saver):
+class TmallSkuSaver(spider.Saver):
 
     def __init__(self, config):
-        super(TaoBaoSkuSaver,self).__init__(config)
+        super(TmallSkuSaver,self).__init__(config)
         client = pymongo.MongoClient(self.cf.getStr('mongodb', 'db_host'), self.cf.getInt('mongodb', 'db_port'))
         db = client['test']
         self.collection = db['data_' + datetime.datetime.now().strftime('%Y%m')]
@@ -156,9 +156,7 @@ class TaoBaoSkuSaver(spider.Saver):
         self.collection.update({'productActualID': item["productActualID"]}, {'$set': item}, True)
         return 1
 
-
-
-class TaoBaoSkuProxieser(spider.Proxieser):
+class TmallSkuProxieser(spider.Proxieser):
 
     def proxies_get(self):
         url = 'http://127.0.0.1:5010/get_all/?name=TaoBao_proxy'

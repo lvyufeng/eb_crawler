@@ -25,7 +25,7 @@ class UrlFilter(object):
         self._bloom_filter = pybloom_live.ScalableBloomFilter(capacity, error_rate=0.001) if capacity else None
         return
 
-    def update(self, url_list):
+    def update(self, url_list: object) -> object:
         """
         update this urlfilter using url_list
         """
