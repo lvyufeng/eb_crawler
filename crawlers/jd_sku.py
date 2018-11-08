@@ -56,16 +56,8 @@ class JingDongSkuParser(spider.Parser):
             # 获取类别和卖家id
             venderId = re.compile(r"(?<=venderId:).+?(?=,)").findall(content)
             cat = re.compile(r"(?<=cat: \[).+?(?=\],)").findall(content)
-            # 若存在两者，构造详情信息页面url；
-            # 否则返回失败
-            if venderId and cat:
-                detail_url = 'http://c0.3.cn/stock?skuId=%s' %id +'&area=1_72_4137_0&venderId={}&cat={}&extraParam='.format(venderId[0], cat[0]) + parse.quote('{"originid":"1"}')
-                url_list.append((detail_url, keys, priority-1))
-            else:
-                return -1, [], []
-            # 构造评论信息页面url
-            comment_url = 'http://wq.jd.com/commodity/comment/getcommentlist?sku=%s' %id
-            url_list.append((comment_url, keys, priority-1))
+
+
 
             # 解析数据，使用正则表达式解析，返回值为list
             item['website'] = [str(keys['website'])]
@@ -84,6 +76,22 @@ class JingDongSkuParser(spider.Parser):
             # 取出list中解析得到的数据
             for k,v in item.items():
                 item[k] = v[0].strip() if v else ''
+                # 构造评论信息页面url
+
+            keys.update(item)
+
+            # 若存在两者，构造详情信息页面url；
+            # 否则返回失败
+            if venderId and cat:
+                detail_url = 'http://c0.3.cn/stock?skuId=%s' % id + '&area=1_72_4137_0&venderId={}&cat={}&extraParam='.format(
+                    venderId[0], cat[0]) + parse.quote('{"originid":"1"}')
+                url_list.append((detail_url, keys, priority - 1))
+            else:
+                return -1, [], []
+
+
+            return 1, url_list, []
+
 
         elif 'commodity' in url:
             # 解析评论信息
@@ -91,6 +99,9 @@ class JingDongSkuParser(spider.Parser):
             comment = json.loads(temp)
             item['commentCount'] = comment["result"]["productCommentSummary"]["CommentCount"]
             item['productActualID'] = str(comment["result"]["productCommentSummary"]["SkuId"])
+
+            # item.update(keys)
+            return 1, url_list, [item]
 
 
         elif 'stock' in url:
@@ -126,11 +137,17 @@ class JingDongSkuParser(spider.Parser):
                 item['companyName'] = None
                 item['storeLocation'] = None
 
+            keys.update(item)
+            comment_url = 'http://wq.jd.com/commodity/comment/getcommentlist?sku=%s' % item['productActualID']
+            url_list.append((comment_url, keys, priority - 1))
+
+            return 1, url_list, []
+
         else:
             # 无效url返回的content
             return -1, [], []
 
-        return 1, url_list, [item]
+
 
 class JingDongSkuSaver(spider.Saver):
 
@@ -148,8 +165,30 @@ class JingDongSkuSaver(spider.Saver):
         """
         # print(type(item))
         item.update(keys)
+        try:
+            self.collection.insert_one(item)
 
-        self.collection.update({'productActualID': item["productActualID"]}, {'$set': item},True)
+            # self.count = self.count + 1
+        except Exception as e:
+            return -1
+        # if 'item' in url:
+        #     try:
+        #         self.collection.insert_one(item)
+        #
+        #         # self.count = self.count + 1
+        #     except Exception as e:
+        #         return -1
+        #     # pass
+        #
+        # else:
+        #
+        #     try:
+        #         self.collection.update({'productActualID': item["productActualID"]}, {'$set': item}, False)
+        #
+        #         # self.count = self.count + 1
+        #     except Exception as e:
+        #         return -1
+
         return 1
 
 class JingDongSkuProxieser(spider.Proxieser):

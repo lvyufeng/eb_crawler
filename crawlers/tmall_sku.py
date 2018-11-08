@@ -153,7 +153,7 @@ class TmallSkuSaver(spider.Saver):
         # print(type(item))
         item.update(keys)
 
-        self.collection.update({'productActualID': item["productActualID"]}, {'$set': item}, True)
+        self.collection.insert_one(item)
         return 1
 
 class TmallSkuProxieser(spider.Proxieser):

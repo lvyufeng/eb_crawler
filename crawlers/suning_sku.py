@@ -66,16 +66,7 @@ class SuNingSkuParser(spider.Parser):
             item['productActualID'] = re.compile(r"(?<=ninePartNumber\":\").+?(?=\")").findall(content)
             item['productCompleteID'] = re.compile(r"(?<=\"partNumber\":\").+?(?=\")").findall(content)
             item['storeActualID'] = re.compile(r"(?<=vendorCode\":\").+?(?=\")").findall(content)
-            if int(url.split('/')[-2]) != 0:
-                shop_url = 'http://shop.suning.com/jsonp/{}/shopinfo/shopinfo.html'.format(int(url.split('/')[-2]))
-                url_list.append((shop_url, {'productActualID':item['productActualID'][0]}, priority-1))
-            if item['productCompleteID'] and item['storeActualID'] :
-                pas_url = 'http://pas.suning.com/nspcsale_0_{}_{}_{}_320_023_0230101_500353_1000333_9325_12583_Z001___R9006371.html'.format(item['productCompleteID'][0],item['productCompleteID'][0],url.split('/')[-2])
-                review_url = 'http://review.suning.com/ajax/cluster_review_satisfy/general--{}-{}-----satisfy.htm'.format(item['productCompleteID'][0],url.split('/')[-2])
-                url_list.append((pas_url, {'productActualID':item['productActualID'][0]}, priority-1))
-                url_list.append((review_url, {'productActualID':item['productActualID'][0]}, priority-1))
-            else:
-                return -1, [], []
+
 
             item['website'] = [str(keys['website'])]
             item['keyword'] = [keys['keyword']]
@@ -96,6 +87,15 @@ class SuNingSkuParser(spider.Parser):
             for k, v in item.items():
                 item[k] = v[0].strip() if v else ''
 
+            keys.update(item)
+            if int(url.split('/')[-2]) != 0:
+                shop_url = 'http://shop.suning.com/jsonp/{}/shopinfo/shopinfo.html'.format(int(url.split('/')[-2]))
+                url_list.append((shop_url, keys, priority-1))
+
+                return 1, url_list, []
+            else:
+                return -1, [], []
+
         elif 'shop' in url:
             item['productActualID'] = keys['productActualID']
             shop = json.loads(str(content).strip().strip('shopinfo(').strip(')'))
@@ -103,6 +103,18 @@ class SuNingSkuParser(spider.Parser):
             item['storeURL'] = shop['shopDomain']
             item['storeLocation'] = shop['companyAddress']
             item['companyName'] = shop['companyName']
+
+
+            keys.update(item)
+
+            if item['productCompleteID'] and item['storeActualID'] :
+                pas_url = 'http://pas.suning.com/nspcsale_0_{}_{}_{}_320_023_0230101_500353_1000333_9325_12583_Z001___R9006371.html'.format(keys['productCompleteID'],keys['productCompleteID'],keys['storeActualID'])
+                # review_url = 'http://review.suning.com/ajax/cluster_review_satisfy/general--{}-{}-----satisfy.htm'.format(item['productCompleteID'][0],url.split('/')[-2])
+                url_list.append((pas_url, keys, priority-1))
+                # url_list.append((review_url, {'productActualID':item['productActualID'][0]}, priority-1))
+                return 1, url_list, []
+            else:
+                return -1, [], []
 
             pass
 
@@ -113,15 +125,26 @@ class SuNingSkuParser(spider.Parser):
             item['productPromPrice'] = pas['data']['price']['saleInfo'][0]['promotionPrice']
             # pcData(
             # pass
+
+            keys.update(item)
+
+            if item['productCompleteID'] and item['storeActualID']:
+                review_url = 'http://review.suning.com/ajax/cluster_review_satisfy/general--{}-{}-----satisfy.htm'.format(keys['productCompleteID'],keys['storeActualID'])
+                url_list.append((review_url, keys, priority-1))
+                return 1, url_list, []
+            else:
+                return -1, [], []
         elif 'review' in url:
             item['productActualID'] = keys['productActualID']
             review = json.loads(str(content).strip().strip('satisfy(').strip(')'))
             item['commentCount'] = review['reviewCounts'][0]['totalCount']
             # pass
+
+            return 1, url_list, [item]
         else:
             return -1, [], []
 
-        return 1, url_list, [item]
+        # return 1, url_list, [item]
 
         # self.shopId = re.compile(r"(?<=shopid=).+?(?=;)").findall(self.main_response.text)
         #
@@ -155,8 +178,24 @@ class SuNingSkuSaver(spider.Saver):
         """
         # print(type(item))
         item.update(keys)
+        try:
+            self.collection.insert_one(item)
 
-        self.collection.update({'productActualID': item["productActualID"]}, {'$set': item}, True)
+            # self.count = self.count + 1
+        except Exception as e:
+            return -1
+
+
+        # if 'product' in url:
+        #     self.collection.insert_one(item)
+        #
+        # else:
+        #     try:
+        #         self.collection.update({'productActualID': item["productActualID"]}, {'$set': item}, False)
+        #         # self.count = self.count + 1
+        #     except Exception as e:
+        #         return -1
+
         return 1
 
 

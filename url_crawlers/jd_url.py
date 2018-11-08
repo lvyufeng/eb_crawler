@@ -44,6 +44,11 @@ class JingDongUrlParser(spider.Parser):
     """
     parser module, only rewrite htm_parse()
     """
+    def __init__(self, max_deep=0):
+        super(JingDongUrlParser, self).__init__(max_deep)
+        self.category = ['2641', '13591', '12222', '13598', '13553', '1583', '13586', '1584', '1524', '1581', '1585', '13581', '12221', '12219', '1523', '5019', '12224', '12202','14227','9193','9194','9195','12558','12480']
+        pass
+
     def htm_parse(self, priority: int, url: str, keys: dict, deep: int, content: object):
         response_text = content.replace('searchCB(','').replace(')','').replace('\\',' ')
         url_list = []
@@ -53,9 +58,12 @@ class JingDongUrlParser(spider.Parser):
             data = json.loads(response_text)
             total_page = int(data['data']['searchm']['Head']['Summary']['Page']['PageCount'])
             for i in data['data']['searchm']['Paragraph']:
-                sku_list.append({
-                    '_id':'j'+i['wareid']
-                })
+                if i['cid2'] in self.category:
+                    sku_list.append({
+                        '_id':'j'+i['wareid']
+                    })
+                else:
+                    continue
             pass
 
             if url.split('=')[-1] == '1':
