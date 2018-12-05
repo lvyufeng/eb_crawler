@@ -11,7 +11,7 @@ def test_spider():
     # key = 'JingDong'
     # keys = ['YouLeGou','SuNing','Tmall','TaoBao','JingDong']
     config = config_parser('./../conf.ini')
-    keys = ['YouLeGou','SuNing','Tmall']
+    keys = ['SuNing']
     web_spiders = []
     for key in keys:
         need_proxy = config.getStr('need_proxy', key)
@@ -53,7 +53,7 @@ def test_spider():
 
     for web_spider in web_spiders:
     # start web_spider
-        web_spider.start_working(fetcher_num=10)
+        web_spider.start_working(fetcher_num=1)
         print(web_spider.name)
         # wait for finished
         web_spider.wait_for_finished()

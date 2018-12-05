@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
-
+import re
 
 # wb = requests.get('https://www.jd.com/allSort.aspx')
 # soup = BeautifulSoup(wb.text,'lxml')
@@ -14,15 +14,11 @@ import requests
 #         f.write(k+','+v+'\n')
 #
 # f.close()
-pass
 
+url = 'http://search.suning.com/%E8%8B%B9%E6%9E%9C/'
 
-data = []
-with open('taobao_category.csv','r+') as f:
-    for i in f.readlines():
-        data.append(i.split(',')[0])
-
-f.close()
-data = set(data)
-print(data)
+wb = requests.get(url)
+print(wb.text)
+list = re.compile(r"(?<=href=\"//).+?(?=\"class=\"sellPoint\")").findall(wb.text)
+next = re.compile(r"(?<=pagenum=\").+?(?=\")").findall(wb.text)
 pass

@@ -6,6 +6,7 @@ import random
 from urllib import parse
 from items import SkuItem
 import datetime
+import re
 import pymongo
 
 class SuNingUrlFetcher(spider.Fetcher):
@@ -48,6 +49,19 @@ class SuNingUrlParser(spider.Parser):
         response_text = content
         url_list = []
         sku_list = []
+
+        # item = SkuItem()
+        list = re.compile(r"(?<=href=\"//).+?(?=\"class=\"sellPoint\")").findall(content)
+
+        # href="/%E8%8B%B9%E6%9E%9C/&amp;iy=0&amp;cp=49" id="nextPage"
+        next = re.compile(r"(?<=href=\").+?(?=\"id=\"nextPage\")").findall(content)
+        for i in next:
+            if 's=' in i and 's=60' not in i:
+                url_list.append(('https://list.tmall.com/search_product.htm' + i, keys, priority + 1))
+        for i in list:
+            sku_list.append({
+                '_id': 't' + str(i)
+            })
         # item = SkuItem()
         try:
             data = json.loads(response_text)
