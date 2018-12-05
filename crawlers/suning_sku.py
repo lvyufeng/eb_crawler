@@ -93,6 +93,11 @@ class SuNingSkuParser(spider.Parser):
                 url_list.append((shop_url, keys, priority-1))
 
                 return 1, url_list, []
+            elif item['productCompleteID'] and item['storeActualID'] :
+                pas_url = 'http://pas.suning.com/nspcsale_0_{}_{}_{}_320_023_0230101_500353_1000333_9325_12583_Z001___R9006371.html'.format(keys['productCompleteID'], keys['productCompleteID'], keys['storeActualID'])
+                url_list.append((pas_url, keys, priority - 1))
+                    # url_list.append((review_url, {'productActualID':item['productActualID'][0]}, priority-1))
+                return 1, url_list, []
             else:
                 return -1, [], []
 
@@ -128,7 +133,7 @@ class SuNingSkuParser(spider.Parser):
 
             keys.update(item)
 
-            if item['productCompleteID'] and item['storeActualID']:
+            if keys['productCompleteID'] and keys['storeActualID']:
                 review_url = 'http://review.suning.com/ajax/cluster_review_satisfy/general--{}-{}-----satisfy.htm'.format(keys['productCompleteID'],keys['storeActualID'])
                 url_list.append((review_url, keys, priority-1))
                 return 1, url_list, []

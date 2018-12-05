@@ -11,7 +11,7 @@ def test_spider():
     """
     client = pymongo.MongoClient('localhost')
     db = client['sku']
-    collection = db['sku_ids']
+    collection = db['sku_ids_201812']
 
 
     # initial config parser
