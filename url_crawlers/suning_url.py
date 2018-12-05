@@ -78,7 +78,7 @@ class SuNingUrlSaver(spider.Saver):
         self.count = 0
         client = pymongo.MongoClient('localhost')
         db = client['sku']
-        self.collection = db['sku_ids']
+        self.collection = db['sku_ids_' + datetime.datetime.now().strftime('%Y%m')]
         return
 
 

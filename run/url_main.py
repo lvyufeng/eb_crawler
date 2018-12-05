@@ -9,9 +9,9 @@ def test_spider():
     """
     # key = 'TaoBao'
     # key = 'JingDong'
-    # keys = ['YouLeGou','SuNing','Tmall','TaoBao','JingDong']
+    keys = ['YouLeGou','SuNing','Tmall','TaoBao','JingDong']
     config = config_parser('./../conf.ini')
-    keys = ['YouLeGou','SuNing','Tmall']
+    # keys = ['YouLeGou','SuNing','Tmall']
     web_spiders = []
     for key in keys:
         need_proxy = config.getStr('need_proxy', key)
