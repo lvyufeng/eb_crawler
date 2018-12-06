@@ -6,7 +6,6 @@ import time
 import datetime
 from items import SkuItem
 from urllib import parse
-from fake_useragent import UserAgent
 import pymongo
 
 class YouLeGouSkuFetcher(spider.Fetcher):

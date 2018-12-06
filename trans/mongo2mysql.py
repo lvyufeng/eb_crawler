@@ -2,18 +2,29 @@ import pymongo
 import pymysql
 import datetime
 from decimal import Decimal
+from cut_keyword import compare_name_keyword
 sku_keys = ['itemid','storeid','platform','name','salecount','commentcount','platform_categoryid','origin','province','city','factoryAddress','keyword','price','createtime','status']
 # mongodb
 
 client = pymongo.MongoClient('202.202.5.140')
 database = client['test']
-collection = database['data_' + datetime.datetime.now().strftime('%Y%m')]
+collection = database['data_201810']
 
+# client = pymongo.MongoClient('localhost')
+# database = client['test']
+# collection = database['data_201812']
 # mysql
 db = pymysql.connect("202.202.5.140", "root", "cqu1701", "eb")
 # 使用 cursor() 方法创建一个游标对象 cursor
 cursor = db.cursor()
 
+
+def suning_category(category):
+    cats = ['喂养用品', '奶粉', '营养辅食', '食品保健/酒水饮料', '进口食品', '生鲜']
+    if category in cats:
+        return True
+    else:
+        return False
 
 def pre_prosessing_price(price,promprice):
     if price is None or price == '' or '?' in price:
@@ -48,6 +59,10 @@ def pre_prosessing_price(price,promprice):
 
 def find_area(city,data):
     data.pop('_id')
+    try:
+        data.pop['deliveryStartArea']
+    except:
+        pass
     keyword = data['keyword']
     data.pop('keyword')
     for i in data.values():
@@ -92,6 +107,11 @@ def get_store(data):
             store[k] = data[v]
         except:
             continue
+
+
+    if data['website'] == 'TaoBao' and data['storeName'] == data['shopkeeper']:
+        store['platform'] = 'Tmall'
+
     if data['website'] == 'SuNing':
         store['province'] = '重庆'
     if (data['website'] == 'Tmall' or data['website'] == 'TaoBao') and 'factoryAddress' in data:
@@ -148,7 +168,8 @@ def get_sku(data):
             sku[k] = data[v]
         except:
             sku[k] = None
-
+    if data['website'] == 'TaoBao' and data['storeName'] == data['shopkeeper']:
+        sku['platform'] = 'Tmall'
     if sku['storeid'] == None:
         sku['storeid'] = '00000000'
     sku['price'] = pre_prosessing_price(data['productPrice'], data['productPromPrice'])
@@ -178,8 +199,11 @@ def trans_store():
         total = total + 1
         valid = find_area('重庆',i)
         if valid:
+            if i['website'] == 'SuNing' and not suning_category(i['category1']):
+                continue
             count = count + 1
             store = get_store(i)
+
 
             sql = 'insert into ' + 'store' + '(' + ','.join(store.keys()) + ') ' + 'values(' + ','.join(['%s' for i in store.keys()]) + ')'
             # print(store)
@@ -197,8 +221,8 @@ def trans_store():
 
         # count = count + 1
             print('total: %s, count: %s' %(total,count))
-def trans_sku():
-    sql = 'INSERT INTO ' + 'sku_201810' + '(' + ','.join(sku_keys) + ') ' + 'values(' + ','.join(['%s' for i in sku_keys]) + ')'
+def trans_sku(table):
+    sql = 'INSERT INTO ' + table + '(' + ','.join(sku_keys) + ') ' + 'values(' + ','.join(['%s' for i in sku_keys]) + ')'
 
     total = 0
     # sku_list = []
@@ -207,7 +231,12 @@ def trans_sku():
         valid = find_area('重庆',i)
         if valid:
             print(total)
+            if i['website'] == 'SuNing' and not suning_category(i['category1']):
+                continue
             sku = get_sku(i)
+            matched = compare_name_keyword(sku['name'],sku['keyword'])
+            if not matched:
+                sku['keyword'] = '其他'
             # sku_list.append(tuple([sku[key] for key in sku_keys]))
             # pass
             # # + datetime.datetime.now().strftime('%Y%m')
@@ -249,9 +278,19 @@ def find_city():
             count = count + 1
             print(total,count)
 
+def find_category():
+    # sql = 'INSERT INTO ' + 'sku_201810' + '(' + ','.join(sku_keys) + ') ' + 'values(' + ','.join(['%s' for i in sku_keys]) + ')'
+    total = 0
+    count = 0
+    cat_list = []
+    for i in collection.find():
+        cat_list.append(i['category1'])
 
-trans_sku()
+    print(set(cat_list))
 
+# trans_sku('sku_201810')
+# find_category()
 # find_city()
-# trans_store()
+trans_store()
+
 db.close()

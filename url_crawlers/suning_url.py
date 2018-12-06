@@ -51,39 +51,25 @@ class SuNingUrlParser(spider.Parser):
         sku_list = []
 
         # item = SkuItem()
-        list = re.compile(r"(?<=href=\"//).+?(?=\"class=\"sellPoint\")").findall(content)
 
+
+        no_result = re.compile(r"(?<=没有找到).+?(?=)").findall(content)
+        #no-result-tips
+        if no_result:
+            return -1,[],[]
+
+        list = re.compile(r"(?<=href=\"//).+?(?=\"class=\"sellPoint\")").findall(content)
         # href="/%E8%8B%B9%E6%9E%9C/&amp;iy=0&amp;cp=49" id="nextPage"
         next = re.compile(r"(?<=href=\").+?(?=\"id=\"nextPage\")").findall(content)
         for i in next:
-            if 's=' in i and 's=60' not in i:
-                url_list.append(('https://list.tmall.com/search_product.htm' + i, keys, priority + 1))
+            if 'cp=' in i and 'cp=1' not in i:
+                url_list.append(('http://search.suning.com' + i, keys, priority + 1))
         for i in list:
             sku_list.append({
-                '_id': 't' + str(i)
+                '_id': 's' + str(i).split('.')[-2].replace('com/','')
             })
         # item = SkuItem()
-        try:
-            data = json.loads(response_text)
-            total_page = int(int(data['goodsCount'])/20)
-            for i in data['goods']:
-                sku_list.append({
-                    '_id':'s'+ i['salesCode'] + '/' +i['catentryId']
-                })
-            pass
-
-            if url.split('=')[-1] == '1':
-                for i in range(2,total_page + 1):
-                    url_list.append((url.replace('cp=1','cp='+str(i)), keys, priority + 1))
-
-            return 1, url_list, sku_list
-        except Exception as e:
-            pass
-            return -1,[],[]
-
-        # print(save_list)
-
-        # return 1, url_list, [item]
+        return 1, url_list, sku_list
 
 class SuNingUrlSaver(spider.Saver):
 
