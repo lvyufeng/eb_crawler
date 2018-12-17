@@ -68,7 +68,7 @@ class TaoBaoSkuParser(spider.Parser):
                     value = json.loads(data['data']['apiStack'][0]['value'])
                 except:
                     return -1,[],[]
-                item['website'] = keys['website']
+                item['website'] = keys['website'] if data['data']['seller']['shopType'] == 'C' else 'Tmall'
                 item['keyword'] = keys['keyword']
                 item['productURL'] = url
                 item['categoryId'] = data['data']['item']['rootCategoryId'] if 'itemId' in data['data']['item'] else None
