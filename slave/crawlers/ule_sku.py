@@ -1,11 +1,9 @@
 import spider
 import requests
-import json
 import re
 import time
 import datetime
-from items import SkuItem
-from urllib import parse
+from slave.items import SkuItem
 import pymongo
 
 class YouLeGouSkuFetcher(spider.Fetcher):
