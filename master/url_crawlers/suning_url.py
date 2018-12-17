@@ -1,10 +1,7 @@
 import spider
 import requests
-import json
 import time
 import random
-from urllib import parse
-from items import SkuItem
 import datetime
 import re
 import pymongo

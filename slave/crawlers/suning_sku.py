@@ -2,10 +2,9 @@ import spider
 import requests
 import json
 import time
-import random
 import re
 import datetime
-from items import SkuItem
+from slave.items import SkuItem
 import pymongo
 
 class SuNingSkuFetcher(spider.Fetcher):
