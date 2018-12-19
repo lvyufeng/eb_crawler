@@ -11,7 +11,7 @@ def test_spider():
     # keys = ['YouLeGou','SuNing','Tmall','TaoBao','JingDong']
     config = config_parser('./../conf.ini')
 
-    keys = ['TaoBao']
+    keys = ['Tmall']
     web_spiders = []
     for key in keys:
         need_proxy = config.getStr('need_proxy', key)
@@ -38,7 +38,8 @@ def test_spider():
         # api = config.getStr('url_api', 'taobao_url_api')
         api = config.getStr('url_api', key)
 
-        keywords = get_keywords()
+        keywords = ['重庆调味']
+        # keywords = get_keywords()
         # urls = []
         for i in keywords:
             url = api.format(i)

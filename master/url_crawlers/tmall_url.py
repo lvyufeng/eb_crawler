@@ -60,7 +60,7 @@ class TmallUrlParser(spider.Parser):
 
         next = re.compile(r"(?<=\"ui-page-next\" href=\").+?(?=\")").findall(content)
         for i in next:
-            if 's=' in i and 's=60' not in i:
+            if 's=' in i:# and 's=60' not in i:
                 url_list.append(('https://list.tmall.com/search_product.htm' + i, keys, priority + 1))
         for i in list:
             if i['category'] in self.category:
