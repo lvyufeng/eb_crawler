@@ -26,7 +26,8 @@ class TaoBaoUrlFetcher(spider.Fetcher):
             response = requests.get(url, proxies=proxies,timeout = 5)
 
             if response.status_code == 200:
-
+                if 'sm' in response.text:
+                    return 0, False, None
                 return 1, True, response.text
 
             else:
@@ -35,7 +36,7 @@ class TaoBaoUrlFetcher(spider.Fetcher):
                 return -1, False, None
         except:
             # print('加载超时，重新写入Queue')
-                 return 0, False, None
+                return 0, False, None
 
 
 class TaoBaoUrlParser(spider.Parser):

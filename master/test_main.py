@@ -3,14 +3,15 @@ from spider import config_parser,WebSpider
 import random
 from utils import createInstance,get_keywords
 
+
 def test_spider():
     """
     test spider
     """
-    keys = ['YouLeGou','SuNing','Tmall','TaoBao','JingDong']
+    # keys = ['YouLeGou','SuNing','Tmall','TaoBao','JingDong']
     config = config_parser('./../conf.ini')
 
-    # keys = ['SuNing']
+    keys = ['TaoBao']
     web_spiders = []
     for key in keys:
         need_proxy = config.getStr('need_proxy', key)
@@ -28,7 +29,6 @@ def test_spider():
 
         # initial web_spider
         web_spider = WebSpider(key,fetcher,parser,saver,proxieser, monitor_sleep_time=1)
-
 
         # initial config parser
         # config = config_parser('./../conf.ini')
