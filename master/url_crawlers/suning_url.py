@@ -5,7 +5,7 @@ import random
 import datetime
 import re
 import pymongo
-
+import redis
 class SuNingUrlFetcher(spider.Fetcher):
     """
     fetcher module, only rewrite url_fetch()
@@ -63,7 +63,10 @@ class SuNingUrlParser(spider.Parser):
                 url_list.append(('http://search.suning.com' + i, keys, priority + 1))
         for i in list:
             sku_list.append({
-                '_id': 's' + str(i).split('.')[-2].replace('com/','')
+                '_id': str(i).split('.')[-2].replace('com/',''),
+                'keyword': keys['keyword'],
+                'website': keys['website']
+
             })
         # item = SkuItem()
         return 1, url_list, sku_list
@@ -76,6 +79,7 @@ class SuNingUrlSaver(spider.Saver):
         client = pymongo.MongoClient('localhost')
         db = client['sku']
         self.collection = db['sku_ids_' + datetime.datetime.now().strftime('%Y%m')]
+        self.r = redis.Redis.from_url("redis://202.202.5.140:6379", decode_responses=True)
         return
 
 
@@ -83,13 +87,13 @@ class SuNingUrlSaver(spider.Saver):
         """
         save the item of a url, you can rewrite this function, parameters and return refer to self.working()
         """
-        item.update(keys)
+        # item.update(keys)
         # pass
         try:
             self.collection.insert(item)
         except:
             return -1
-
+        self.r.sadd('sku:' + keys['website'], item)
         # if self.count % 1000 == 0:
         #     self.db.commit()
 

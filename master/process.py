@@ -37,6 +37,19 @@ class urlSpiderProcess(Process):
             web_spider.set_start_url(url, keys={
                 'website': self.name,
                 'keyword': i,
+                'params': {
+                    'jsv': '2.3.16',
+                    'appKey': '12574478',
+                    't': None,
+                    'sign': None,
+                    'api': 'mtop.taobao.wsearch.h5search',
+                    'v': '1.0',
+                    'H5Request': 'true',
+                    'ecode': '1',
+                    'type': 'jsonp',
+                    'dataType': 'jsonp',
+                    'callback': 'mtopjsonp1',
+                    'data': '{{"q":"{0}","search":"提交","tab":"{2}","sst":"1","n":20,"buying":"buyitnow","m":"api4h5","token4h5":"","abtest":"29","wlsort":"29","page":{1}}}'.format(i, 1, 'all' if self.name == 'TaoBao' else 'mall')}
             })
         web_spider.start_working(fetcher_num=2)
         # wait for finished

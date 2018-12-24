@@ -11,7 +11,7 @@ def test_spider():
     # keys = ['YouLeGou','SuNing','Tmall','TaoBao','JingDong']
     config = config_parser('./../conf.ini')
 
-    keys = ['Tmall']
+    keys = ['TaoBao']
     web_spiders = []
     for key in keys:
         need_proxy = config.getStr('need_proxy', key)
@@ -46,6 +46,20 @@ def test_spider():
             web_spider.set_start_url(url,keys={
                 'website':key,
                 'keyword':i,
+                'params' : {
+                    'jsv': '2.3.16',
+                    'appKey': '12574478',
+                    't': None,
+                    'sign': None,
+                    'api': 'mtop.taobao.wsearch.h5search',
+                    'v': '1.0',
+                    'H5Request': 'true',
+                    'ecode': '1',
+                    'type': 'jsonp',
+                    'dataType': 'jsonp',
+                    'callback': 'mtopjsonp1',
+                    'data': '{{"q":"{0}","search":"提交","tab":"{2}","sst":"1","n":20,"buying":"buyitnow","m":"api4h5","token4h5":"","abtest":"29","wlsort":"29","page":{1}}}'.format(i, 1, 'all' if key == 'TaoBao' else 'mall')
+                }
             })
 
         web_spiders.append(web_spider)
