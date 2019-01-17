@@ -39,7 +39,7 @@ def test_spider():
         api = config.getStr('sku_api', key)
     # add start url
         for i in collection.find({'website':key}):
-            url = api.format(i['_id'][1:])
+            url = api.format(i['_id'])
             web_spider.set_start_url(url, keys={
                 'website': key,
                 'keyword': i['keyword'],

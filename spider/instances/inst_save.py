@@ -17,7 +17,7 @@ class Saver(object):
         constructor
         :param save_pipe: default sys.stdout, also can be a file handler
         """
-        # self.cf = config
+        self.cf = config
 
         # client = pymongo.MongoClient('localhost',27017)
 
