@@ -22,14 +22,21 @@
 # list = re.compile(r"(?<=href=\"//).+?(?=\"class=\"sellPoint\")").findall(wb.text)
 # next = re.compile(r"(?<=pagenum=\").+?(?=\")").findall(wb.text)
 # pass
+import json
 
-import pymysql
+text = """
+success
+"""
 
-db = pymysql.connect("202.202.5.140", "root", "cqu1701", "eb")
-# 使用 cursor() 方法创建一个游标对象 cursor
-cursor = db.cursor()
-
-
-sql = 'SELECT b.three FROM threeclassificationtable a,threeclassificationtable b where a.two = b.two and a.three = %s'
-
-db.close()
+data = json.loads(text)
+pass
+# import pymysql
+#
+# db = pymysql.connect("202.202.5.140", "root", "cqu1701", "eb")
+# # 使用 cursor() 方法创建一个游标对象 cursor
+# cursor = db.cursor()
+#
+#
+# sql = 'SELECT b.three FROM threeclassificationtable a,threeclassificationtable b where a.two = b.two and a.three = %s'
+#
+# db.close()
