@@ -5,6 +5,7 @@ import time
 import random
 import datetime
 import pymongo
+import redis
 
 class JingDongUrlFetcher(spider.Fetcher):
     """
@@ -58,7 +59,9 @@ class JingDongUrlParser(spider.Parser):
             for i in data['data']['searchm']['Paragraph']:
                 if i['cid2'] in self.category:
                     sku_list.append({
-                        '_id':'j'+i['wareid']
+                        '_id': i['wareid'],
+                        'keyword': keys['keyword'],
+                        'website': keys['website']
                     })
                 else:
                     continue
@@ -85,6 +88,7 @@ class JingDongUrlSaver(spider.Saver):
         client = pymongo.MongoClient('localhost')
         db = client['sku']
         self.collection = db['sku_ids_' + datetime.datetime.now().strftime('%Y%m')]
+        self.r = redis.Redis.from_url("redis://202.202.5.140:6379", decode_responses=True)
         return
 
 
@@ -92,13 +96,13 @@ class JingDongUrlSaver(spider.Saver):
         """
         save the item of a url, you can rewrite this function, parameters and return refer to self.working()
         """
-        item.update(keys)
+        # item.update(keys)
         # pass
         try:
             self.collection.insert(item)
         except:
             return -1
-
+        self.r.sadd('sku:' + keys['website'], item)
         # if self.count % 1000 == 0:
         #     self.db.commit()
 

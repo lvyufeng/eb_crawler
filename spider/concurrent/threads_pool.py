@@ -62,7 +62,7 @@ class ThreadPool(object):
         self._lock = threading.Lock()                   # the lock which self._number_dict needs
 
         # set monitor thread
-        self._thread_monitor = MonitorThread("monitor", self, sleep_time=monitor_sleep_time)
+        self._thread_monitor = MonitorThread(self.name + " monitor", self, sleep_time=monitor_sleep_time)
         self._thread_monitor.setDaemon(True)
         logging.info("%s has been initialized", self.__class__.__name__)
         return

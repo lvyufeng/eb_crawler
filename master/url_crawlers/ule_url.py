@@ -5,6 +5,7 @@ import time
 import random
 import datetime
 import pymongo
+import redis
 
 class YouLeGouUrlFetcher(spider.Fetcher):
     """
@@ -54,7 +55,10 @@ class YouLeGouUrlParser(spider.Parser):
 
             for i in data['resultList']:
                 sku_list.append({
-                    '_id':'u'+str(i['listingId'])
+                    '_id': str(i['listingId']),
+                    'keyword': keys['keyword'],
+                    'website': keys['website']
+
                 })
             pass
 
@@ -78,6 +82,7 @@ class YouLeGouUrlSaver(spider.Saver):
         client = pymongo.MongoClient('localhost')
         db = client['sku']
         self.collection = db['sku_ids_' + datetime.datetime.now().strftime('%Y%m')]
+        self.r = redis.Redis.from_url("redis://202.202.5.140:6379", decode_responses=True)
         return
 
 
@@ -85,13 +90,13 @@ class YouLeGouUrlSaver(spider.Saver):
         """
         save the item of a url, you can rewrite this function, parameters and return refer to self.working()
         """
-        item.update(keys)
+        # item.update(keys)
         # pass
         try:
             self.collection.insert(item)
         except:
             return -1
-
+        self.r.sadd('sku:' + keys['website'], item)
         # if self.count % 1000 == 0:
         #     self.db.commit()
 
