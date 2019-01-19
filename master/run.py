@@ -1,13 +1,8 @@
 import time
-# import sched
-# import apscheduler
 import datetime
 import schedule
-import pymysql
-import multiprocessing
 from utils.mysql_connect import mysql_connect,select_all
 from master.process import urlSpiderProcess
-from spider import config_parser
 
 # master主要完成事项：
 # 1、从mysql获取任务

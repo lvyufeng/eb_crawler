@@ -1,6 +1,7 @@
 import requests
 import json
 import re
+import json
 
 
 def get_goods(gjz, page_count, price, sort, sales_filete, pd_filter):
@@ -16,9 +17,9 @@ def get_goods(gjz, page_count, price, sort, sales_filete, pd_filter):
     """
     headers = {
         'User-Agent': 'android Mozilla/5.0 (Linux; Android 4.4.2; HUAWEI MLA-AL10 Build/HUAWEIMLA-AL10) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36  phh_android_version/3.23.0 phh_android_build',
-        'Host': 'apiv3.yangkeduo.com'
+        # 'Host': 'apiv3.yangkeduo.com'
     }
-    data = {'gjz': gjz, 'price_qj': get_price_qj(gjz), 'goods_list': []}
+    data = {'goods_list': []}
 
 
     # 开始循环获取商品
@@ -36,6 +37,7 @@ def get_goods(gjz, page_count, price, sort, sales_filete, pd_filter):
         for good in good_list.get('items'):
             # 商品ID
             goods_id = good['goods_id']
+
             # 标题链接
             link = 'http://mobile.yangkeduo.com/goods.html?goods_id=%s' % goods_id
             # 销量
@@ -48,18 +50,19 @@ def get_goods(gjz, page_count, price, sort, sales_filete, pd_filter):
             t.insert(-2, '.')
             normal_price = float(''.join(t))
             # 当前可拼数量, 及名称
-            good_name, p_count = get_p_count(goods_id)
-            if pd_filter != 0:
-                if p_count < pd_filter:
-                    continue
-            dd = [goods_id, link, good_name, p_count, sales, normal_price]
-            print(dd)
-            data['goods_list'].append(dd)
+            good_data = get_good_info(goods_id)
+
+            mall_id = good_data['mall_id']
+
+            good_group = get_goods_group(goods_id)
+            mall_data = get_mall_info(mall_id)
+            data['goods_list'].append(good_data)
+
     return data
 
 
 # 获取当前商品以拼数量
-def get_p_count(good_id):
+def get_good_info(good_id):
     """
     获取指定商品的当前拼单人数，以及商品名称
     :param good_id: 商品ID
@@ -68,33 +71,46 @@ def get_p_count(good_id):
     headers = {
         'User-Agent': 'android Mozilla/5.0 (Linux; Android 4.4.2; HUAWEI MLA-AL10 Build/HUAWEIMLA-AL10) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36  phh_android_version/3.23.0 phh_android_build',
     }
-    response = requests.get(url='http://mobile.yangkeduo.com/goods.html?goods_id=%s' % good_id, headers=headers)
-    json_find = re.findall('window.rawData=\s+(?P<n>{.+});', response.text)
-    if json_find:
-        data = json.loads(json_find[0])
-        return data['initDataObj']['goods']['goodsName'], data['initDataObj']['goods']['localGroupsTotal']
-    else:
-        return '', 0
+    response = requests.get(url='http://apiv4.yangkeduo.com/v5/goods/{}?pdduid='.format(good_id), headers=headers)
+    data = json.loads(response.text)
+    return data
 
-# 获取商品价格区间
-def get_price_qj(gjz):
+    # response = requests.get(url='http://mobile.yangkeduo.com/goods.html?goods_id=%s' % good_id, headers=headers)
+    # json_find = re.findall('window.rawData=\s+(?P<n>{.+});', response.text)
+    # if json_find:
+    #     data = json.loads(json_find[0])
+    #     return data['initDataObj']['goods']['goodsName'], data['initDataObj']['goods']['localGroupsTotal']
+    # else:
+    #     return '', 0
+def get_goods_group(good_id):
+    """
+    获取指定商品的当前拼单人数，以及商品名称
+    :param good_id: 商品ID
+    :return: （商品名称， 拼单人数）
+    """
     headers = {
         'User-Agent': 'android Mozilla/5.0 (Linux; Android 4.4.2; HUAWEI MLA-AL10 Build/HUAWEIMLA-AL10) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36  phh_android_version/3.23.0 phh_android_build',
-        'Host': 'apiv3.yangkeduo.com'
     }
-    response = requests.get(url='http://apiv3.yangkeduo.com/search?q=%s' % gjz, headers=headers)
-    good_list = json.loads(response.text)
-    price_qj = ''
-    if good_list.get('filter', None):
-        for i in good_list['filter'].get('price', []):
-            v = list(i.values())
-            if v:
-                if v[-1] == -1:
-                    price_qj += '%s以上' % v[0]
-                else:
-                    price_qj += '%s-%s//' % (v[0], v[1])
-    return price_qj
+    response = requests.get(url='http://apiv4.yangkeduo.com/v2/goods/{}/local_group?pdduid='.format(good_id), headers=headers)
+    data = json.loads(response.text)
+    return data
+
+
+def get_mall_info(mall_id):
+    """
+    获取指定商品的当前拼单人数，以及商品名称
+    :param good_id: 商品ID
+    :return: （商品名称， 拼单人数）
+    """
+    headers = {
+        'User-Agent': 'android Mozilla/5.0 (Linux; Android 4.4.2; HUAWEI MLA-AL10 Build/HUAWEIMLA-AL10) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36  phh_android_version/3.23.0 phh_android_build',
+    }
+    response = requests.get(url='http://apiv4.yangkeduo.com/mall/{}/info?pdduid='.format(mall_id), headers=headers)
+    data = json.loads(response.text)
+    return data
+
+
 if __name__ == '__main__':
-    gjz, page_count, price, sort, sales_filete = '奉节脐橙', 1, None, '_sales', [0, 0]
+    gjz, page_count, price, sort, sales_filete = '四川泡菜', 1, None, '_sales', [0, 0]
     print(get_goods(gjz, page_count, price, sort, sales_filete, 0))
     # get_price_qj('羽绒服')

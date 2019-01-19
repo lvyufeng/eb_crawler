@@ -49,7 +49,7 @@ class JingDongUrlParser(spider.Parser):
         pass
 
     def htm_parse(self, priority: int, url: str, keys: dict, deep: int, content: object):
-        response_text = content.replace('searchCB(','').replace(')','').replace('\\',' ')
+        response_text = content.replace('searchCB(','').replace(')','').replace('\\','')
         url_list = []
         sku_list = []
         # item = SkuItem()

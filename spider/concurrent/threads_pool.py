@@ -17,11 +17,10 @@ class ThreadPool(object):
     class of ThreadPool
     """
 
-    def __init__(self,name, fetcher, parser=None, saver=None, proxieser=None, url_filter=None, monitor_sleep_time=5):
+    def __init__(self, fetcher, parser=None, saver=None, proxieser=None, url_filter=None, monitor_sleep_time=5):
         """
         constructor
         """
-        self.name = name
         self._inst_fetcher = fetcher                    # fetcher instance, subclass of Fetcher
         self._inst_parser = parser                      # parser instance, subclass of Parser or None
         self._inst_saver = saver                        # saver instance, subclass of Saver or None
@@ -30,7 +29,7 @@ class ThreadPool(object):
         self._queue_fetch = queue.PriorityQueue()       # (priority, counter, url, keys, deep, repeat)
         self._queue_parse = queue.PriorityQueue()       # (priority, counter, url, keys, deep, content)
         self._queue_save = queue.Queue()                # (url, keys, item), item can be anything
-        self._queue_proxies = OrderedMapQueue()             # {"http": "http://auth@ip:port", "https": "https://auth@ip:port"}
+        self._queue_proxies = []             # {"http": "http://auth@ip:port", "https": "https://auth@ip:port"}
 
         self._thread_fetcher_list = []                  # fetcher threads list
         self._thread_parser = None                      # parser thread
@@ -62,7 +61,7 @@ class ThreadPool(object):
         self._lock = threading.Lock()                   # the lock which self._number_dict needs
 
         # set monitor thread
-        self._thread_monitor = MonitorThread(self.name + " monitor", self, sleep_time=monitor_sleep_time)
+        self._thread_monitor = MonitorThread(" monitor", self, sleep_time=monitor_sleep_time)
         self._thread_monitor.setDaemon(True)
         logging.info("%s has been initialized", self.__class__.__name__)
         return
@@ -191,9 +190,10 @@ class ThreadPool(object):
             self._queue_save.put_nowait(task_content)
             self.update_number_dict(TPEnum.ITEM_SAVE_NOT, +1)
         elif task_name == TPEnum.PROXIES and self._thread_proxieser:
-            self._queue_proxies.put_nowait(task_content)
-            sub = self._queue_proxies.qsize() - self.get_number_dict(TPEnum.PROXIES_LEFT)
-            self.update_number_dict(TPEnum.PROXIES_LEFT, sub)
+            if task_content not in self._queue_proxies:
+                self._queue_proxies.append(task_content)
+                sub = self._queue_proxies.__sizeof__() - self.get_number_dict(TPEnum.PROXIES_LEFT)
+                self.update_number_dict(TPEnum.PROXIES_LEFT, sub)
         # del task_content
         return
 
@@ -204,9 +204,14 @@ class ThreadPool(object):
 
         task_content = None
         if task_name == TPEnum.PROXIES:
-            task_content = self._queue_proxies.get(block=True, timeout=5)
-            self.update_number_dict(TPEnum.PROXIES_LEFT, -1)
-            return task_content
+            import random
+            if self._queue_proxies:
+                task_content = random.choice(self._queue_proxies)
+                self._queue_proxies.remove(task_content)
+                self.update_number_dict(TPEnum.PROXIES_LEFT, -1)
+                return task_content
+            else:
+                return None
         elif task_name == TPEnum.URL_FETCH:
             task_content = self._queue_fetch.get(block=True, timeout=5)
             self.update_number_dict(TPEnum.URL_FETCH_NOT, -1)
@@ -224,7 +229,7 @@ class ThreadPool(object):
         finish a task based on task_name, also for proxies
         """
         if task_name == TPEnum.PROXIES:
-            self._queue_proxies.task_done()
+            # self._queue_proxies.task_done()
             return
         elif task_name == TPEnum.URL_FETCH:
             self._queue_fetch.task_done()

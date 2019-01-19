@@ -1,0 +1,55 @@
+{
+  "mongpodb":{
+    "db_host":"localhost",
+    "db_port":27017,
+    "db_name":"eb"
+  },
+  "mysql":{
+    "host":"localhost",
+    "port":"3306",
+    "user":"root",
+    "passwd":"",
+    "db":"eb"
+  },
+  "redis":{
+    "addr":"redis://202.202.5.140:6379"
+  },
+  "url_api":{
+    "ali":"https://ai.taobao.com/search/getItem.htm?taobao=true&tmall=true&key={}&maxPageSize=200&page=1",
+    "jd":"https://so.m.jd.com/ware/search._m2wq_list?keyword={}&pagesize=50&page=1",
+    "suning":"https://search.suning.com/emall/mobile/wap/clientSearch.jsonp?keyword={}&ps=20&set=5&ct=-1&cp=0",
+    "ule":"https://m.ule.com/cat/ajax.html?sort=&keyword={}&pageIndex=1",
+    "pdd":"http://apiv3.yangkeduo.com/search?q={}&size=50&requery=0&list_id=search_UHpDve&sort=_sales&page=1"
+  },
+  "sku_api":{
+    "ali":"https://ai.taobao.com/search/getItem.htm?taobao=true&tmall=true&key={}&maxPageSize=200&page=1",
+    "jd":"https://so.m.jd.com/ware/search._m2wq_list?keyword={}&pagesize=50&page=1",
+    "suning":"https://search.suning.com/emall/mobile/wap/clientSearch.jsonp?keyword={}&ps=20&set=5&ct=-1&cp=0",
+    "ule":"https://m.ule.com/cat/ajax.html?sort=&keyword={}&pageIndex=1",
+    "pdd":"http://apiv3.yangkeduo.com/search?q={}&size=50&requery=0&list_id=search_UHpDve&sort=_sales&page=1"
+  },
+  "json_replace":{
+    "ali":[],
+    "jd":["searchCB(",")","\\"],
+    "suning":[],
+    "ule":[],
+    "pdd":[]
+
+  },
+  "url_depth":{
+    "ali":["result","auction"],
+    "jd":["data","searchm","Paragraph"],
+    "suning":["goods"],
+    "ule":["resultList"],
+    "pdd":["items"]
+  },
+
+  "need_proxy":{
+    "ali":1,
+    "jd":0,
+    "suning":0,
+    "ule":0,
+    "pdd":1
+  }
+
+}
