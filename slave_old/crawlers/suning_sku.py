@@ -4,7 +4,7 @@ import json
 import time
 import re
 import datetime
-from slave.items import SkuItem
+from slave_old.items import SkuItem
 import pymongo
 
 class SuNingSkuFetcher(spider.Fetcher):

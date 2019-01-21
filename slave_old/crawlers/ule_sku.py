@@ -3,7 +3,7 @@ import requests
 import re
 import time
 import datetime
-from slave.items import SkuItem
+from slave_old.items import SkuItem
 import pymongo
 
 class YouLeGouSkuFetcher(spider.Fetcher):

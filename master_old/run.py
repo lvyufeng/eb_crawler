@@ -2,7 +2,7 @@ import time
 import datetime
 import schedule
 from utils.mysql_connect import mysql_connect,select_all
-from master.process import urlSpiderProcess
+from master_old.process import urlSpiderProcess
 
 # master主要完成事项：
 # 1、从mysql获取任务

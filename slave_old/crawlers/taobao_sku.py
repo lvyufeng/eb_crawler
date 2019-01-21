@@ -4,7 +4,7 @@ import json
 import time
 import random
 from urllib import parse
-from slave.items import SkuItem
+from slave_old.items import SkuItem
 import datetime
 import pymongo
 
