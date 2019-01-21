@@ -7,7 +7,11 @@ import redis
 def main():
     redis_cli = redis.Redis.from_url("redis://202.202.5.140:6379", decode_responses=True)
     dbs = redis_cli.keys("sku*")  # 获得当前数据库所有的“key*”
-    print(dbs)  # 查看key是否存在
+    count = 0
+    for i in dbs:
+        count = count + redis_cli.scard(i)
+        print(i,redis_cli.scard(i))
+    print(count)
 
 def control_process():
     while True:
