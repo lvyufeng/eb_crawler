@@ -6,7 +6,8 @@
 # https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
-
+import requests
+import random
 
 class CrawlingSpiderMiddleware(object):
     # Not all methods need to be defined. If a method is not defined,
@@ -101,3 +102,46 @@ class CrawlingDownloaderMiddleware(object):
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
+
+
+class ProxyMiddleWare(object):
+    """docstring for ProxyMiddleWare"""
+    proxies = []
+    useful_proxies = 0
+    def __init__(self):
+        self.get_proxies()
+
+    def process_request(self, request, spider):
+        '''对request对象加上proxy'''
+        proxy = self.get_random_proxy()
+        request.meta['proxy'] = 'http://' + proxy
+
+    def process_response(self, request, response, spider):
+        '''对返回的response处理'''
+        # 如果返回的response状态不是200，重新生成当前request对象
+        if self.useful_proxies < 50:
+            self.get_proxies()
+        if response.status != 200:
+            if request.meta['proxy'] in self.proxies:
+                self.proxies.remove(request.meta['proxy'])
+            self.useful_proxies -= 1
+            proxy = self.get_random_proxy()
+            # 对当前reque加上代理
+            request.meta['proxy'] = 'http://' + proxy
+            return request
+        return response
+    def get_proxies(self):
+        url = 'http://127.0.0.1:5010/get_all'
+        wb_data = requests.get(url)
+        # print(wb_data.content)
+        # self.proxies = []
+        for i in eval(wb_data.text):
+            self.proxies.append(i)
+
+        self.useful_proxies = len(self.proxies)
+
+    def get_random_proxy(self):
+        '''随机从文件中读取proxy'''
+
+        proxy = random.choice(self.proxies).strip()
+        return proxy

@@ -1,29 +1,37 @@
 # -*- coding: utf-8 -*-
-from scrapy_redis.spiders import RedisSpider
-from scrapy.xlib.pydispatch import dispatcher
-from scrapy import signals
-import os
+import scrapy
 from scrapy.http import Request
-from scrapy.utils.reqser import request_to_dict
-import pickle
+import requests
+import json
 
-class UrlSpider(RedisSpider):
+class UrlMasterSpider(scrapy.Spider):
     name = 'url_master'
-    # allowed_domains = ['www.taobao.com']
+    count = 0
+    # allowed_domains = ['test.com']
+    def start_requests(self):
+        url_api = {
+            "ali": "https://ai.taobao.com/search/getItem.htm?taobao=true&tmall=true&key={}&maxPageSize=200&page=1",
+            "jd": "https://so.m.jd.com/ware/search._m2wq_list?keyword={}&pagesize=50&page=1",
+            "suning": "https://search.suning.com/emall/mobile/wap/clientSearch.jsonp?keyword={}&ps=20&set=5&ct=-1&cp=0",
+            "ule": "https://m.ule.com/cat/ajax.html?sort=&keyword={}&pageIndex=1",
+            "pdd": "http://apiv3.yangkeduo.com/search?q={}&size=50&requery=0&list_id=search_UHpDve&sort=_sales&page=1"
+        }
 
-    redis_key = 'sku:ali'
+        wb = requests.get('http://202.202.5.140/crawler/three/')
+        keys = json.loads(wb.text)
+        for key in keys:
+            for platform,api in url_api.items():
+                url = api.format(key['three'])
 
-    def __init__(self):
+        # for url in self.start_urls:
+                yield Request(url=url, callback=self.parse, meta={'key':key['three']}, dont_filter= True)
 
-        super(UrlSpider,self).__init__()
-
-
-    def make_requests_from_url(self, url):
-        # print(url)
-        return Request('https://www.baidu.com', dont_filter=True)
+    # def error_back(self,failure):
+    #
+    #     # print(failure)
+    #     # pass
 
     def parse(self, response):
-        print(response)
-        pass
-
-        # pass
+        self.count += 1
+        print(self.count)
+        yield scrapy.Request('http://www.baidu.com/', callback=self.parse)

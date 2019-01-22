@@ -13,11 +13,6 @@ class SkuSpider(RedisSpider):
 
     redis_key = 'sku:ali'
 
-    def __init__(self):
-
-        super(SkuSpider,self).__init__()
-
-
     def make_requests_from_url(self, url):
         # print(url)
         return Request('https://www.baidu.com', dont_filter=True)
